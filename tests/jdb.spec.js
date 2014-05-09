@@ -93,12 +93,37 @@ describe('JDB Instance', function()
             });
         });
 
-        xit('writeDelay can be used to control the minimum period between writes', function()
+        it('writeDelay can be used to control the minimum period between writes', function(done)
         {
+            db = new JDB("test", { rootPath: rootPath, writeDelay: 50 });
+            db.store('test-key', { test: true });
+
+            // Check before the write should have hit
+            setTimeout(function()
+            {
+                assert(!fs.existsSync(db.path), "Database wrote out to disk.");
+            }, 20);
+
+            // Check after the write should have hit
+            setTimeout(function()
+            {
+                var jsonStr = fs.readFileSync(db.path).toString();
+                assert.deepEqual(JSON.parse(jsonStr), {'test-key':{test:true}});
+                done();
+            }, 60);
         });
 
-        xit('prettyPrint can be used to control whether or not the json on disk is persisted in compact form', function()
+        it('prettyPrint can be used to control whether or not the json on disk is persisted in compact form', function(done)
         {
+            db = new JDB("test", { rootPath: rootPath, prettyPrint: false });
+            db.store('test-key', { test: true });
+
+            setTimeout(function()
+            {
+                var jsonStr = fs.readFileSync(db.path).toString();
+                assert.equal(jsonStr, '{"test-key":{"test":true}}');
+                done();
+            }, 20);
         });
     });
 
@@ -114,10 +139,6 @@ describe('JDB Instance', function()
         {
             var key = db.store({ test: true });
             assert(key in db.values, "The key '" + key + "' was not found.");
-        });
-
-        xit('handles collisions when generating a key', function()
-        {
         });
     });
 
@@ -140,9 +161,9 @@ describe('JDB Instance', function()
         it('updates the value with the partial when an existing key is passed', function()
         {
             db.values['test-key'] = { test: true };
-            db.merge('test-key', { other: 123 });
+            var newVal = db.merge('test-key', { other: 123 });
 
-            assert.deepEqual(db.get('test-key'), { test: true, other: 123 });
+            assert.deepEqual(newVal, { test: true, other: 123 });
         });
 
         it('creates a new value of the partial when a nonexistent key is passed', function()
@@ -155,17 +176,17 @@ describe('JDB Instance', function()
         it('updates deeply nested objects', function()
         {
             db.values['test-key'] = { test: true, nested: { subkey: { foo: "bar" }, other: 123 }};
-            db.merge('test-key', { nested: { subkey: { foo: "bleh" }}});
+            var newVal = db.merge('test-key', { nested: { subkey: { foo: "bleh" }}});
 
-            assert.deepEqual(db.get('test-key'), { test: true, nested: { subkey: { foo: "bleh" }, other: 123 }});
+            assert.deepEqual(newVal, { test: true, nested: { subkey: { foo: "bleh" }, other: 123 }});
         });
 
         it('creates intermediate keys on deeply nested objects', function()
         {
             db.values['test-key'] = { test: true };
-            db.merge('test-key', { nested: { subkey: { foo: "bleh" }}});
+            var newVal = db.merge('test-key', { nested: { subkey: { foo: "bleh" }}});
 
-            assert.deepEqual(db.get('test-key'), { test: true, nested: { subkey: { foo: "bleh" }}});
+            assert.deepEqual(newVal, { test: true, nested: { subkey: { foo: "bleh" }}});
         });
     });
 
