@@ -1,0 +1,16 @@
+# Project directories
+built
+vendor
+
+# Editor artifacts
+**.swp
+
+# NPM cruft
+node_modules
+**.log
+
+# Jetbrains IDE project files
+.idea
+
+# Database
+db

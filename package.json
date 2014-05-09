@@ -1,0 +1,23 @@
+{
+  "name": "jbase",
+  "version": "0.1.0",
+  "description": "A lightweight key/value json storage with persistence.",
+  "main": "jbase.js",
+  "scripts": {
+      "test": "./node_modules/.bin/mocha tests --reporter spec --recursive"
+  },
+  "keywords": [
+    "json",
+    "db",
+    "database",
+    "storage"
+  ],
+  "author": "Christopher S. Case <chris.case@g33xnexus.com>",
+  "license": "MIT",
+  "dependencies": {
+    "lodash": "~2.4.1"
+  },
+  "devDependencies": {
+    "mocha": "~1.18.2"
+  }
+}
