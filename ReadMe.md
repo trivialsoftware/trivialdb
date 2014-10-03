@@ -24,7 +24,7 @@ $ npm install --save jbase
 
 ## API
 
-The jbase api is inspired, generally, by [RethinkDB](http://rethinkdb.com/) and it's node.js ORM,
+The jbase api is inspired (spiritually) by [RethinkDB](http://rethinkdb.com/) and it's node.js ORM,
 [thinky](http://thinky.io/). These are two great projects, and once you outgrow jbase, I strongly encourage you to
 check them out!
 
@@ -36,10 +36,10 @@ Jbase lazily loads databases. Jbase also creates databases if they don't exist. 
 
 ```javascript
 // Open or create a database
-var db = jbase.database('some_db');
+var db = jbase.db('some_db');
 
 // Open or create a database, with options
-var db = jbase.database('some_db', { writeToDisk: false });
+var db = jbase.db('some_db', { writeToDisk: false });
 ```
 
 This will look for a file named `"./some_db.json"`. (If your database lives somewhere else, you can pass the `rootPath`
