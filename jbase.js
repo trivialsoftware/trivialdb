@@ -13,7 +13,8 @@ module.exports = {
     {
         // The constructor of JDB handles the create or load logic.
         return new JDB(name, options);
-    }
+    },
+    JDB: JDB
 }; // end exports
 
 //----------------------------------------------------------------------------------------------------------------------
