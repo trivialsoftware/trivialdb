@@ -41,6 +41,17 @@ individual operations, however, it also makes all calls asynchronous, which help
 If you do not like promises, or disagree with this change, then I recommend using
 [v0.9.0](https://github.com/Morgul/jbase/releases/tag/v0.9.0).
 
+### Promises
+
+JBase exposes our internal Promise object as `.Promise`, so you can leverage it if you want to. (We use bluebird.)
+
+```javascript
+var jbase = require('jbase');
+var Promise = jbase.Promise;
+
+// Work with `Promise` here
+```
+
 ### Loading or saving databases
 
 * `db(databaseName, options)` - Returns a database instance.
