@@ -20,6 +20,7 @@ module.exports = {
     },
     defineModel: models.defineModel,
     JDB: JDB,
+    Model: models.Model,
     Promise: Promise,
     errors: errors
 }; // end exports
