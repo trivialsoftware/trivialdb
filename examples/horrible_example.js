@@ -25,7 +25,7 @@ db.store({ name: "Captain Hammer", role: 'hero', nemeses: [] })
     .then(function(id)
     {
         hammerID = id;
-        return db.store({name: "Dr. Horrible", role: 'villian', nemeses: []});
+        return db.store({name: "Dr. Horrible", role: 'villain', nemeses: []});
     })
     .then(function(id)
     {
