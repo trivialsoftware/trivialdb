@@ -7,6 +7,7 @@
 var Promise = require('bluebird');
 
 var JDB = require('./lib/jdb');
+var models = require('./lib/models');
 var errors = require('./lib/errors');
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -17,11 +18,7 @@ module.exports = {
         // The constructor of JDB handles the create or load logic.
         return new JDB(name, options);
     },
-    defineModel: function(dbName, schemaDef)
-    {
-        var db = module.exports.db(dbName);
-        db.schema = schemaDef;
-    },
+    defineModel: models.defineModel,
     JDB: JDB,
     Promise: Promise,
     errors: errors
