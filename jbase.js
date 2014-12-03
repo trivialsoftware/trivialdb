@@ -17,6 +17,11 @@ module.exports = {
         // The constructor of JDB handles the create or load logic.
         return new JDB(name, options);
     },
+    defineModel: function(dbName, schemaDef)
+    {
+        var db = module.exports.db(dbName);
+        db.schema = schemaDef;
+    },
     JDB: JDB,
     Promise: Promise,
     errors: errors
