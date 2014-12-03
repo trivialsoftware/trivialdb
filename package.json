@@ -4,7 +4,7 @@
   "description": "A lightweight key/value json storage with persistence.",
   "main": "jbase.js",
   "scripts": {
-      "test": "./node_modules/.bin/mocha tests --reporter spec --recursive"
+    "test": "./node_modules/.bin/mocha tests --reporter spec --recursive"
   },
   "keywords": [
     "json",
@@ -15,7 +15,8 @@
   "author": "Christopher S. Case <chris.case@g33xnexus.com>",
   "license": "MIT",
   "dependencies": {
-    "lodash": "~2.4.1"
+    "lodash": "~2.4.1",
+    "node-uuid": "^1.4.1"
   },
   "devDependencies": {
     "mocha": "~1.18.2"
