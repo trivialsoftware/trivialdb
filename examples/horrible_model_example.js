@@ -30,47 +30,36 @@ var moist = new Character({ name: "Moist", role: 'henchman', nemeses: [] });
 var penny = new Character({ name: "Penny", role: 'love interest', nemeses: []});
 
 // Save the characters
-hammer.save()
-    .then(function()
-    {
-        return horrible.save();
-    })
-    .then(function()
-    {
-        return moist.save();
-    })
-    .then(function()
-    {
-        return penny.save();
-    })
+jbase.Promise.all([
+        hammer.save(),
+        horrible.save(),
+        moist.save(),
+        penny.save()
+    ])
     .then(function()
     {
         // We've finished adding values, so print out the database:
         console.log('\n[Step 1] db.values:\n%s', pprint(horrible.$$db.values));
-    })
-    .then(function()
-    {
+
         // Update hammer's values
         hammer.nemeses.push(horrible.id);
         hammer.loveInterest = penny.id;
 
-        return hammer.save();
-    })
-    .then(function()
-    {
         // Update horrible's values
         horrible.nemeses.push(hammer.id);
         horrible.loveInterest = penny.id;
 
-        return horrible.save();
+        // Save both
+        return jbase.Promise.all([
+            hammer.save(),
+            horrible.save()
+        ]);
     })
     .then(function()
     {
         // We've finished updating values, so print out the database:
         console.log('\n[Step 2] db.values:\n%s', pprint(horrible.$$db.values));
-    })
-    .then(function()
-    {
+
         // Filter for just the people who love Penny
         return Character.filter({ loveInterest: penny.id })
             .then(function(lovesPenny)
@@ -78,10 +67,5 @@ hammer.save()
                 console.log('\n[Step 3] people who love Penny:\n%s', pprint(lovesPenny));
             });
     });
-
-//----------------------------------------------------------------------------------------------------------------------
-
-module.exports = {
-}; // end exports
 
 //----------------------------------------------------------------------------------------------------------------------
