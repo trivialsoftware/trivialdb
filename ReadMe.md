@@ -32,18 +32,244 @@ The JBase API is inspired (spiritually) by [RethinkDB](http://rethinkdb.com/) an
 [thinky](http://thinky.io/). These are two great projects, and once you outgrow JBase, I strongly encourage you to
 check them out!
 
-### **New in 1.0.0**
+There are two different APIs, the low-level 'Database' API, and the higher level 'Model' API. Previous versions of JBase
+only had the Database API, so if you want to use what you're used to, feel free to keep using it. (You can even use both
+together in various ways.)
 
-The API has recently changed. As I've been building projects, I've discovered that Promise-based APIs are both elegant
+### Model API
+
+The model API was added to make JBase feel much more like the larger ORM style solutions out there. I'm a very big fan
+of working with models as opposed to direct database calls, and I've taken some of my favorite features and baked them
+directly into JBase. Here's the current feature list:
+
+* Model validation
+* Simple model definitions
+* Models serialize as JSON objects
+* Get & Filter functions that return model instances
+* Automatic syncing of database changes to Model instances
+* Manual syncing of Model instances with the database
+
+Don't worry, you are not required to use the Model API, or even know it's there.
+
+#### Defining a model
+
+* `defineModel(databaseName, modelDefinition, databaseOptions)` - Returns a `JDBModel`.
+
+Defining a model in JBase is very simple. Models and databases have a one to one relationship, so you can think of the
+`databaseName` as the name of the model, though they don't have to have an relation to each other.
+
+_Note_: You will need to save the return value of `defineModel` and use that for querying or creating new instances.
+
+```javascript
+
+// Define a user model
+var User = jbase.defineModel('users', {
+    name: { type: String, required: true },
+    age: Number,
+    admin: { type: Boolean, required: true, default: false }
+});
+
+// Define an in-memory only model
+var Session = jbase.defineModel('sessions', {
+    userID: { type: String, required: true }
+}, { writeToDisk: false });
+```
+
+##### Type Definition Object
+
+The model definition is a simple object where the value is either a javascript type (String, Boolean, Number, etc.), or
+a type definition object. The supported options are:
+
+* `type` - Required. This must be a javascript type (String, Boolean, Number, etc).
+* `required` - Optional. If false (the default), null and undefined are allowed values for this field.
+* `default` - Optional. A value to default the field to. (This can easily be overwritten simply by assigning to the
+field.)
+
+#### Creating a Model
+
+To create a model, you simply create a new instance of the return value of `defineModel`, optionally passing in an
+option to populate the model with.
+
+```javascript
+// Create a regular user
+var user = new User({ name: "Some Person", age: 23 });
+```
+
+#### Updating a model
+
+Updating a model is as simple as modifying the model instance, and then calling save.
+
+```javascript
+// Create a regular user
+var user = new User({ name: "Some Person", age: 23 });
+
+// Make the user an admin
+user.admin = true;
+
+// Save the user
+user.save();
+```
+
+#### Validating a Model
+
+* `model.validate()` - Returns a promise that either resolves, or rejects with a `ValidationError`.
+
+All model instances have a `validate` function, which you can use to check to make sure the model is valid. When there
+is a validation error, you will get a `ValidationError` object with a `key` property that indicates the key that failed
+validation. You can catch this error using `.catch`
+
+Currently, we only validate based on type, or the type definition object's options.
+
+```javascript
+// Create a regular user
+var user = new User({ name: "Some Person", age: 23 });
+
+// Make the user an admin
+user.admin = true;
+
+// This will resolve correctly.
+user.validate().then(function()
+{
+    // We get here.
+});
+
+// Set the admin field to an invalid type
+user.admin = 'not valid';
+
+// This will throw an error.
+user.validate()
+    .then(function()
+    {
+        // We don't get here.
+    })
+    .catch(jbase.errors.ValidationError, function()
+    {
+        // We catch the error, and handle it here.
+    });
+```
+
+#### Saving a Model
+
+* `model.save(skipValidation)` - Returns a promise that either resolves, or rejects with an error.
+
+Saving a model is as simple as calling `save`. It first calls `validate`, which means that it may throw a
+`ValidationError`.
+
+```javascript
+// Create a regular user
+var user = new User({ name: "Some Person", age: 23 });
+
+// Make the user an admin
+user.admin = true;
+
+// Save the user
+user.save()
+    .then(function()
+    {
+        // Saved!
+    });
+```
+
+#### Syncing
+
+Normally, in an ORM, if you either create a new model instance, or get a model instance somehow, and something else
+changes the database, your model instance is out of date and doesn't get those changes. However, because of the nature
+of JBase, it was very easy to make the models smart enough to update themselves whenever something changes in the
+database.
+
+That being said, there is an issue of how do we merge your unsaved changes when something else has updated the database?
+The design we've chosen is that whenever you model is dirty (`model.$dirty` is true), we ignore the `sync` event. You
+can still manually sync the object.
+
+##### Manual Syncing
+
+* `model.sync(force)` - returns a promise that resolves once the sync has completed.
+
+If you want to sync your model instance (because you manually updated the database, for example), you can simply call
+`sync`. However, if your model is dirty, you will need to force the sync by passing `true` to the `sync` function.
+
+```javascript
+// Create a regular user
+var user = new User({ name: "Some Person", age: 23 });
+
+// Make the user an admin
+user.admin = true;
+
+// Force a sync
+user.sync(true)
+    .then(function()
+    {
+        // user.admin is false here.
+    });
+```
+
+Keep in mind, when you force a sync, _all changes to the model instance will be lost_.
+
+#### Getting a Model by ID
+
+* `Model.get(modelID)` = returns a promise that either resolves with a model instance, ore rejects with a
+`DocumentNotFound` error.
+
+You can easily get model instances by id. Simply call `Model.get` and pass in the id you're looking for. If the id does
+not exist, the promise will be rejected with a `DocumentNotFound` error. You can easily test for this, and handle it
+using `.catch`.
+
+```javascript
+// Get an existing id
+User.get('existing-id')
+    .then(function(user)
+    {
+        // Work with user here
+    });
+
+// Get a non-existent id
+User.get('existing-id')
+    .catch(jbase.errors.DocumentNotFound, function(error)
+    {
+        // Handle not found case
+    });
+```
+
+#### Filtering models
+
+* `Model.filter(filter)` - returns a promise that resolves to a list, or an error.
+
+Instead, if you want to get a list of possible values, you should use `filter`. Just like the Database API function of
+the same name, we support filter functions, `_.pluck` and `_.where` style filters. The results are _always_ as list, so
+if nothing matched your filter, you will get back an empty list.
+
+```javascript
+// Get a list of admins
+User.filter({ admin: true })
+    .then(function(admins)
+    {
+        // Work with the list of admins.
+    });
+```
+
+#### Working with the database
+
+You can work with the database object for a particular model by using the `$$db` object. While I don't recommend doing
+things this way, should you need it, you can use it.
+
+### Database API
+
+This is the API that previous versions of JBase pioneered. It's relatively low-level, and if that's how you'd rather
+work with your database, that's fine. It is still the primary focus of JBase.
+
+#### **New in 1.0.0**
+
+The Database API has recently changed. As I've been building projects, I've discovered that Promise-based APIs are both elegant
 and incredibly convenient. I have opted to make the almost entire API promise-based. This has a small performance hit on
 individual operations, however, it also makes all calls asynchronous, which helps with JBase's ability to handle load.
 
 If you do not like promises, or disagree with this change, then I recommend using
 [v0.9.0](https://github.com/Morgul/jbase/releases/tag/v0.9.0).
 
-### Promises
+##### Promises
 
-JBase exposes our internal Promise object as `.Promise`, so you can leverage it if you want to. (We use bluebird.)
+Because of the change to promises, JBase now exposes our internal Promise object as `jbase.Promise`, so you can
+leverage it  if you want to. (We use [bluebird](https://github.com/petkaantonov/bluebird).)
 
 ```javascript
 var jbase = require('jbase');
@@ -52,7 +278,7 @@ var Promise = jbase.Promise;
 // Work with `Promise` here
 ```
 
-### Loading or saving databases
+#### Loading or saving databases
 
 * `db(databaseName, options)` - Returns a database instance.
 
@@ -69,7 +295,7 @@ var db = jbase.db('some_db', { writeToDisk: false });
 This will look for a file named `"./some_db.json"`. (If your database lives somewhere else, you can pass the `rootPath`
 option in to the `db` call.)
 
-#### Options
+##### Options
 
 The options supported by the `db` call are:
 
@@ -83,7 +309,7 @@ The options supported by the `db` call are:
 }
 ```
 
-### Storing Values
+#### Storing Values
 
 * `store(value)` - Returns a promise resolved with `key`.
 * `store(key, value)` - Returns a promise resolved with `key`.
@@ -103,6 +329,14 @@ db.store({ foo: "bar!", test: "Apples" })
         // Work with `key` here
     };
 
+var key = undefined
+// We support auto generating keys whenever the key parameter is undefined.
+db.store(key, { foo: "bar!", test: "Apples" })
+    .then(function(key)
+    {
+        // Work with `key` here
+    };
+
 // Store an object with key
 db.store('my_key', { foo: "bar!", test: "Apples" })
     .then(function(key)
@@ -111,7 +345,7 @@ db.store('my_key', { foo: "bar!", test: "Apples" })
     };
 ```
 
-### Retrieving Values
+#### Retrieving Values
 
 * `get(key)` - Returns a promise resolved to the value or `undefined`.
 
@@ -126,7 +360,7 @@ db.get('my_key')
     });
 ```
 
-### Updating Values
+#### Updating Values
 
 * `merge(key, partialObj)` - Returns a promise resolved to the new value.
 
@@ -143,17 +377,17 @@ db.merge('my_key', { test: "Oranges" })
 
 ```
 
-### Filter Queries
+#### Filter Queries
 
-* `filter(filterFunc)` - Returns a promise resolved to an object of filtered values.
+* `filter(filter)` - Returns a promise resolved to an object of filtered values.
 
 Sometimes, you need to query based on more than just the key. To do that, JBase gives you a very simple filter query. It
 iterates over every value in the database, and passes that into your filter function. If the function returns true, that
 value is included in the results, otherwise it's omitted.
 
 ```javascript
-// Filter objects
-db.filter(function(key, value)
+// Filter Function
+db.filter(function(value, key)
 {
     // Decide if you want this object
     return value.foo === 'bar!';
@@ -163,7 +397,21 @@ db.filter(function(key, value)
 });
 ```
 
-### Direct Access
+##### New in 1.0.0
+
+You can now also pass in filter objects. We switched to using lodash under the hood, so we support their `_.pluck` &
+`_.where` style callbacks as well!
+
+```javascript
+// Filter object
+db.filter({ foo: 'bar!' })
+    .then(function(results)
+    {
+        // Work with `results` here.
+    });
+```
+
+#### Direct Access
 
 * `sync()` - Returns a promise resolved once the database is considered 'settled'.
 
@@ -197,6 +445,11 @@ db.sync()
 
 Also, you should feel free to iterate over the values object if you need to do any advanced filtering. All the same
 caveats of working with a plain javascript object apply. Just remember to call `sync` if you've made any modifications.
+
+##### New in 1.0.0
+
+Whenever `store` or `merge` are called, a `sync` event is fired from the database object. You can use this should you
+need to know when JBase is syncing to disk.
 
 ## Status
 
