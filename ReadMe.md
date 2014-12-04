@@ -295,6 +295,15 @@ var db = jbase.db('some_db', { writeToDisk: false });
 This will look for a file named `"./some_db.json"`. (If your database lives somewhere else, you can pass the `rootPath`
 option in to the `db` call.)
 
+##### New in 1.0.0
+
+You can now request the same database multiple times, and get back the same instance. This allows you to request the
+database by name in different places in your code, and not worry about the two database instance fighting with each
+other. (The previous behavior was clearly broken, and resulted in very strange issues.)
+
+_Note_: When you request a database any other time than the first, the options are ignored. There is currently no way to
+change a database's options at run time.
+
 ##### Options
 
 The options supported by the `db` call are:

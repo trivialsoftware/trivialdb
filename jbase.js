@@ -12,11 +12,20 @@ var errors = require('./lib/errors');
 
 //----------------------------------------------------------------------------------------------------------------------
 
+var dbInstances = {};
+
 module.exports = {
     db: function(name, options)
     {
-        // The constructor of JDB handles the create or load logic.
-        return new JDB(name, options);
+        var db = dbInstances[name];
+
+        if(!db)
+        {
+            db = new JDB(name, options);
+            dbInstances[name] = db;
+        } // end if
+
+        return db;
     },
     defineModel: models.defineModel,
     JDB: JDB,
