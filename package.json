@@ -15,6 +15,7 @@
   "author": "Christopher S. Case <chris.case@g33xnexus.com>",
   "license": "MIT",
   "dependencies": {
+    "bluebird": "^2.3.11",
     "lodash": "~2.4.1",
     "node-uuid": "^1.4.1"
   },

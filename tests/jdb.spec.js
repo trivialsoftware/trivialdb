@@ -8,6 +8,8 @@ var fs = require('fs');
 var path = require('path');
 var assert = require("assert");
 
+var Promise = require('bluebird');
+
 var JDB = require('../lib/jdb');
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -53,13 +55,14 @@ describe('JDB Instance', function()
 
         db = new JDB("test", { rootPath: rootPath });
         db.values = tDB;
-        db.sync(function()
-        {
-            var dbFile = fs.readFileSync(path.resolve(rootPath, 'test.json')).toString();
+        db.sync()
+            .then(function()
+            {
+                var dbFile = fs.readFileSync(path.resolve(rootPath, 'test.json')).toString();
 
-            assert.deepEqual(JSON.parse(dbFile), tDB);
-            done();
-        });
+                assert.deepEqual(JSON.parse(dbFile), tDB);
+                done();
+            });
     });
 
     describe("Options", function()
@@ -70,11 +73,12 @@ describe('JDB Instance', function()
 
             db = new JDB("test", { writeToDisk: false, rootPath: rootPath });
             db.values = tDB;
-            db.sync(function()
-            {
-                assert(!fs.existsSync(db.path), "Database wrote out to disk.");
-                done();
-            });
+            db.sync()
+                .then(function()
+                {
+                    assert(!fs.existsSync(db.path), "Database wrote out to disk.");
+                    done();
+                });
         });
 
         it('loadFromDisk can be used to disable loading from disk on startup', function()
@@ -86,11 +90,12 @@ describe('JDB Instance', function()
         it('rootPath can be used to control where database files are written', function(done)
         {
             db = new JDB("test", { rootPath: rootPath });
-            db.sync(function()
-            {
-                assert(fs.existsSync(db.path), "Database did not write out to the expected location.");
-                done();
-            });
+            db.sync()
+                .then(function()
+                {
+                    assert(fs.existsSync(db.path), "Database did not write out to the expected location.");
+                    done();
+                });
         });
 
         it('writeDelay can be used to control the minimum period between writes', function(done)
@@ -129,70 +134,106 @@ describe('JDB Instance', function()
 
     describe("Storing Values", function()
     {
-        it('stores a value under the specified key', function()
+        it('stores a value under the specified key', function(done)
         {
-            db.store('test-key', { test: true });
-            assert('test-key' in db.values, "The key 'test-key' was not found.");
+            db.store('test-key', { test: true })
+                .then(function()
+                {
+                    assert('test-key' in db.values, "The key 'test-key' was not found.");
+                    done();
+                });
         });
 
-        it('autogenerates a key when none is specified', function()
+        it('autogenerates a key when none is specified', function(done)
         {
-            var key = db.store({ test: true });
-            assert(key in db.values, "The key '" + key + "' was not found.");
+            db.store({ test: true })
+                .then(function(key)
+                {
+                    assert(key in db.values, "The key '" + key + "' was not found.");
+                    done();
+                });
         });
     });
 
     describe("Retrieving Values", function()
     {
-        it('returns the value when passing in an existing key', function()
+        it('returns the value when passing in an existing key', function(done)
         {
             db.values['test-key'] = { test: true };
-            assert.deepEqual(db.get('test-key'), { test: true });
+            db.get('test-key')
+                .then(function(value)
+                {
+                    assert.deepEqual(value, { test: true });
+                    done();
+                });
         });
 
-        it('returns undefined when passing in a nonexistent key', function()
+        it('returns undefined when passing in a nonexistent key', function(done)
         {
-            assert.equal(db.get('does-not-exist-key'), undefined);
+            db.get('does-not-exist-key')
+                .then(function(value)
+                {
+                    assert.equal(value, undefined);
+                    done();
+                });
         });
     });
 
     describe("Updating Values", function()
     {
-        it('updates the value with the partial when an existing key is passed', function()
+        it('updates the value with the partial when an existing key is passed', function(done)
         {
             db.values['test-key'] = { test: true };
-            var newVal = db.merge('test-key', { other: 123 });
-
-            assert.deepEqual(newVal, { test: true, other: 123 });
+            db.merge('test-key', { other: 123 })
+                .then(function(newVal)
+                {
+                    assert.deepEqual(newVal, { test: true, other: 123 });
+                    done();
+                });
         });
 
-        it('creates a new value of the partial when a nonexistent key is passed', function()
+        it('creates a new value of the partial when a nonexistent key is passed', function(done)
         {
-            db.merge('test-key', { other: 123 });
+            db.merge('test-key', { other: 123 })
+                .then(function()
+                {
+                    db.get('test-key')
+                        .then(function(val)
+                        {
+                            assert.deepEqual(val, { other: 123 });
+                            done();
+                        });
+                });
 
-            assert.deepEqual(db.get('test-key'), { other: 123 });
         });
 
-        it('updates deeply nested objects', function()
+        it('updates deeply nested objects', function(done)
         {
             db.values['test-key'] = { test: true, nested: { subkey: { foo: "bar" }, other: 123 }};
-            var newVal = db.merge('test-key', { nested: { subkey: { foo: "bleh" }}});
+            db.merge('test-key', { nested: { subkey: { foo: "bleh" }}})
+                .then(function(newVal)
+                {
+                    assert.deepEqual(newVal, { test: true, nested: { subkey: { foo: "bleh" }, other: 123 }});
+                    done();
+                });
 
-            assert.deepEqual(newVal, { test: true, nested: { subkey: { foo: "bleh" }, other: 123 }});
         });
 
-        it('creates intermediate keys on deeply nested objects', function()
+        it('creates intermediate keys on deeply nested objects', function(done)
         {
             db.values['test-key'] = { test: true };
-            var newVal = db.merge('test-key', { nested: { subkey: { foo: "bleh" }}});
-
-            assert.deepEqual(newVal, { test: true, nested: { subkey: { foo: "bleh" }}});
+            db.merge('test-key', { nested: { subkey: { foo: "bleh" }}})
+                .then(function(newVal)
+                {
+                    assert.deepEqual(newVal, { test: true, nested: { subkey: { foo: "bleh" }}});
+                    done();
+                });
         });
     });
 
     describe("Filtering Values", function()
     {
-        it('filters the db using the filter function', function()
+        it('filters the db using the filter function', function(done)
         {
             db.values = {
                 'some-guy': { age: 36, name: "Some Guy" },
@@ -201,29 +242,14 @@ describe('JDB Instance', function()
                 'additional-guy': { age: 11, name: "Additional Guy" }
             };
 
-            var ages = db.filter(function(key, value)
+            db.filter(function(key, value)
             {
                 return value.age > 30;
-            });
-
-            assert.deepEqual(ages, {'some-guy': { age: 36, name: "Some Guy" }, 'also-guy': { age: 32, name: "Also Guy" }});
-        });
-
-        it('supports synchronous calls', function()
-        {
-            db.values = {
-                'some-guy': { age: 36, name: "Some Guy" },
-                'also-guy': { age: 32, name: "Also Guy" },
-                'some-other-guy': { age: 16, name: "SomeOther Guy" },
-                'additional-guy': { age: 11, name: "Additional Guy" }
-            };
-
-            var ages = db.filter(function(key, value)
+            }).then(function(ages)
             {
-                return value.age > 30;
+                assert.deepEqual(ages, {'some-guy': { age: 36, name: "Some Guy" }, 'also-guy': { age: 32, name: "Also Guy" }});
+                done();
             });
-
-            assert.deepEqual(ages, {'some-guy': { age: 36, name: "Some Guy" }, 'also-guy': { age: 32, name: "Also Guy" }});
         });
 
         it('supports asynchronous calls', function(done)
@@ -238,7 +264,7 @@ describe('JDB Instance', function()
             db.filter(function(key, value)
             {
                 return value.age > 30;
-            }, function(ages)
+            }).then(function(ages)
             {
                 assert.deepEqual(ages, {'some-guy': { age: 36, name: "Some Guy" }, 'also-guy': { age: 32, name: "Also Guy" }});
                 done();
@@ -254,6 +280,7 @@ describe('JDB Instance', function()
             db._writeToDisk = function()
             {
                 done();
+                return Promise.resolve();
             };
 
             db.sync();
