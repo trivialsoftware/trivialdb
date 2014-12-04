@@ -1,5 +1,7 @@
 # JBase
 
+[![Build Status](https://travis-ci.org/Morgul/jbase.svg?branch=master)](https://travis-ci.org/Morgul/jbase)
+
 A lightweight key/value json storage with persistence. Conceptually, it's just a thin API wrapper around plain javascript
 objects; with the added bonus of doing throttled asynchronous writes on changes. Its on disk format is simply "json on
 disk"; basically the jsonified version of the plain object, saved to a file on disk. This makes making hand edits not
