@@ -24,15 +24,12 @@ describe('Models', function()
             foo: Number
         }, { writeToDisk: false });
 
-        // Create a throw-away model to get access to the $$db object
-        var throwAway = new TestModel({ name: 'foobar' });
-
         // Populate the database
         jbase.Promise.all([
-                throwAway.$$db.store('test1', { name: 'foobar', admin: false }),
-                throwAway.$$db.store('test2', { name: 'barbaz', admin: true }),
-                throwAway.$$db.store('test3', { name: 'foo 2', admin: false, foo: 3 }),
-                throwAway.$$db.store('test4', { name: 'glipi', admin: true, foo: -1.5 })
+                jbase.db('model_test').store('test1', { name: 'foobar', admin: false }),
+                jbase.db('model_test').store('test2', { name: 'barbaz', admin: true }),
+                jbase.db('model_test').store('test3', { name: 'foo 2', admin: false, foo: 3 }),
+                jbase.db('model_test').store('test4', { name: 'glipi', admin: true, foo: -1.5 })
             ])
             .then(function()
             {
@@ -58,7 +55,7 @@ describe('Models', function()
             test.save().then(function()
             {
                 // Ensure the document is saved in the db correctly.
-                test.$$db.get(test.id).then(function(doc)
+                jbase.db('model_test').get(test.id).then(function(doc)
                 {
                     assert.deepEqual(doc, { id: test.id, name: 'test', admin: false });
                     done();
@@ -74,7 +71,7 @@ describe('Models', function()
                 test.save().then(function()
                 {
                     // Ensure the document is saved in the db correctly.
-                    test.$$db.get(test.id).then(function(doc)
+                    jbase.db('model_test').get(test.id).then(function(doc)
                     {
                         assert.deepEqual(doc, { id: test.id, name: 'foobar', admin: true });
                         done();
@@ -124,7 +121,7 @@ describe('Models', function()
             {
                 assert.equal(test.admin, false);
 
-                test.$$db.merge('test1', { admin: true })
+                jbase.db('model_test').merge('test1', { admin: true })
                     .then(function()
                     {
                         assert.equal(test.admin, true);
@@ -143,7 +140,7 @@ describe('Models', function()
 
                 assert.equal(test.$dirty, true);
 
-                test.$$db.merge('test1', { admin: true })
+                jbase.db('model_test').merge('test1', { admin: true })
                     .then(function()
                     {
                         assert.equal(test.admin, false);
@@ -162,7 +159,7 @@ describe('Models', function()
 
                 assert.equal(test.$dirty, true);
 
-                test.$$db.merge('test1', { admin: true })
+                jbase.db('model_test').merge('test1', { admin: true })
                     .then(function()
                     {
                         assert.equal(test.admin, false);

@@ -39,7 +39,7 @@ jbase.Promise.all([
     .then(function()
     {
         // We've finished adding values, so print out the database:
-        console.log('\n[Step 1] db.values:\n%s', pprint(horrible.$$db.values));
+        console.log('\n[Step 1] db.values:\n%s', pprint(jbase.db('characters').values));
 
         // Update hammer's values
         hammer.nemeses.push(horrible.id);
@@ -58,7 +58,7 @@ jbase.Promise.all([
     .then(function()
     {
         // We've finished updating values, so print out the database:
-        console.log('\n[Step 2] db.values:\n%s', pprint(horrible.$$db.values));
+        console.log('\n[Step 2] db.values:\n%s', pprint(jbase.db('characters').values));
 
         // Filter for just the people who love Penny
         return Character.filter({ loveInterest: penny.id })

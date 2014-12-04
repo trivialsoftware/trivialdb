@@ -31,6 +31,14 @@ describe('JBase', function()
             var db = jbase.db("jbase_test", { writeToDisk: false });
             assert.equal(db.options.writeToDisk, false);
         });
+
+        it('returns the same JDB instance if you request it multiple times', function()
+        {
+            var db = jbase.db("jbase_test", { writeToDisk: false });
+            var db2 = jbase.db("jbase_test");
+
+            assert.equal(db, db2);
+        });
     });
 
     describe('defineModel()', function()
