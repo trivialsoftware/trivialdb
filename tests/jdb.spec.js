@@ -242,7 +242,7 @@ describe('JDB Instance', function()
                 'additional-guy': { age: 11, name: "Additional Guy" }
             };
 
-            db.filter(function(key, value)
+            db.filter(function(value, key)
             {
                 return value.age > 30;
             }).then(function(ages)
@@ -252,7 +252,7 @@ describe('JDB Instance', function()
             });
         });
 
-        it('supports asynchronous calls', function(done)
+        it('supports filter objects', function(done)
         {
             db.values = {
                 'some-guy': { age: 36, name: "Some Guy" },
@@ -261,14 +261,12 @@ describe('JDB Instance', function()
                 'additional-guy': { age: 11, name: "Additional Guy" }
             };
 
-            db.filter(function(key, value)
-            {
-                return value.age > 30;
-            }).then(function(ages)
-            {
-                assert.deepEqual(ages, {'some-guy': { age: 36, name: "Some Guy" }, 'also-guy': { age: 32, name: "Also Guy" }});
-                done();
-            });
+            db.filter({ age: 32 })
+                .then(function(ages)
+                {
+                    assert.deepEqual(ages, {'also-guy': { age: 32, name: "Also Guy" }});
+                    done();
+                });
         });
     });
 

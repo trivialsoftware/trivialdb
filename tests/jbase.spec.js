@@ -32,6 +32,20 @@ describe('JBase', function()
             assert.equal(db.options.writeToDisk, false);
         });
     });
+
+    describe('defineModel()', function()
+    {
+        it('returns a custom model instance', function()
+        {
+            var ModelInst = jbase.defineModel('jbase_test', {
+                name: String
+            }, { writeToDisk: false });
+
+            // This is the easiest way to test that it's the right constructor.
+            assert(typeof(ModelInst.get) == 'function');
+            assert(typeof(ModelInst.filter) == 'function');
+        });
+    });
 });
 
 // ---------------------------------------------------------------------------------------------------------------------
