@@ -13,6 +13,12 @@
     "storage"
   ],
   "author": "Christopher S. Case <chris.case@g33xnexus.com>",
+  "bugs": "https://github.com/Morgul/jbase/issues",
+  "homepage": "http://morgul.github.io/jbase/",
+  "repository" : {
+    "type" : "git",
+    "url" : "https://github.com/Morgul/jbase.git"
+  },
   "license": "MIT",
   "dependencies": {
     "bluebird": "^2.3.11",
