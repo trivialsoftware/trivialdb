@@ -270,6 +270,39 @@ describe('JDB Instance', function()
         });
     });
 
+    describe("Remove Values", function()
+    {
+        it('removes values by id', function(done)
+        {
+            db.values = {
+                'some-guy': { age: 36, name: "Some Guy" },
+                'also-guy': { age: 32, name: "Also Guy" }
+            };
+
+            db.remove('some-guy')
+                .then(function()
+                {
+                    assert.deepEqual(db.values, {'also-guy': { age: 32, name: "Also Guy" }});
+                    done();
+                });
+        });
+
+        it('removes values by filter object', function(done)
+        {
+            db.values = {
+                'some-guy': { age: 36, name: "Some Guy" },
+                'also-guy': { age: 32, name: "Also Guy" }
+            };
+
+            db.remove({ age: 36 })
+                .then(function()
+                {
+                    assert.deepEqual(db.values, {'also-guy': { age: 32, name: "Also Guy" }});
+                    done();
+                });
+        });
+    });
+
     describe("Syncing writes", function()
     {
         it('triggers a write to disk when called', function(done)

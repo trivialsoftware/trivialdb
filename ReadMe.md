@@ -174,6 +174,28 @@ user.save()
     });
 ```
 
+#### Removing a Model
+
+* `model.remove()` - Returns a promise that always resolves.
+
+Removing a model is as simple as calling `remove`. The object is removed from the database, and it's values are emptied.
+
+```javascript
+// Get a user
+User.get('some-id')
+    .then(function(user)
+    {
+        return user.remove();
+    });
+```
+
+Models can also be removed via a filter:
+
+```javascript
+// Remove all admins
+User.remove({ admin: true });
+```
+
 #### Syncing
 
 Normally, in an ORM, if you either create a new model instance, or get a model instance somehow, and something else

@@ -117,6 +117,27 @@ describe('Models', function()
             });
         });
 
+        it('can remove models', function(done)
+        {
+            TestModel.get('test1').then(function(test)
+            {
+                test.remove()
+                    .then(function()
+                    {
+                        return TestModel.get('test1');
+                    })
+                    .then(function()
+                    {
+                        assert(false, "Did not throw an error.");
+                        done();
+                    })
+                    .catch(errors.DocumentNotFound, function()
+                    {
+                        done();
+                    });
+            });
+        });
+
         it('automatically updates when the db changes', function(done)
         {
             TestModel.get('test1').then(function(test)
@@ -192,7 +213,7 @@ describe('Models', function()
         it('returns a DocumentNotFoundError when attempting to retrieve an non-existent id', function(done)
         {
             TestModel.get('does-not-exist')
-                .then(function(test)
+                .then(function()
                 {
                     assert(false, "Did not throw an error.");
                     done();
@@ -212,81 +233,120 @@ describe('Models', function()
                     done()
                 });
         });
-    });
 
-    describe('Validation', function()
-    {
-        it('validates a correct instance', function(done)
+        describe('Remove', function()
         {
-            TestModel.get('test1').then(function(test)
+            it('can remove model instances by id', function(done)
             {
-                test.admin = true;
-                test.choice = 'bar';
-                test.toppings = ['cheese', 'mushrooms'];
-                test.validate()
+                TestModel.remove('test2')
                     .then(function()
                     {
-                        done();
-                    })
-                    .catch(errors.ValidationError, function(error)
+                        TestModel.get('test2')
+                            .then(function()
+                            {
+                                assert(false, "Did not throw an error.");
+                                done();
+                            })
+                            .catch(errors.DocumentNotFound, function()
+                            {
+                                done();
+                            });
+                    });
+            });
+
+            it('can remove model instances by a filter', function(done)
+            {
+                TestModel.remove({ admin: true })
+                    .then(function()
                     {
-                        done(error);
+                        TestModel.get('test2')
+                            .then(function()
+                            {
+                                assert(false, "Did not throw an error.");
+                                done();
+                            })
+                            .catch(errors.DocumentNotFound, function()
+                            {
+                                done();
+                            });
                     });
             });
         });
 
-        it('fails to validate when missing a required field', function(done)
+        describe('Validation', function()
         {
-            TestModel.get('test1').then(function(test)
+            it('validates a correct instance', function(done)
             {
-                test.admin = null;
-                test.validate()
-                    .then(function()
-                    {
-                        assert(false, "Did not throw an error.");
-                        done();
-                    })
-                    .catch(errors.ValidationError, function()
-                    {
-                        done();
-                    });
+                TestModel.get('test1').then(function(test)
+                {
+                    test.admin = true;
+                    test.choice = 'bar';
+                    test.toppings = ['cheese', 'mushrooms'];
+                    test.validate()
+                        .then(function()
+                        {
+                            done();
+                        })
+                        .catch(errors.ValidationError, function(error)
+                        {
+                            done(error);
+                        });
+                });
             });
-        });
 
-        it('fails to validate an incorrect type', function(done)
-        {
-            TestModel.get('test1').then(function(test)
+            it('fails to validate when missing a required field', function(done)
             {
-                test.admin = 3;
-                test.validate()
-                    .then(function()
-                    {
-                        assert(false, "Did not throw an error.");
-                        done();
-                    })
-                    .catch(errors.ValidationError, function()
-                    {
-                        done();
-                    });
+                TestModel.get('test1').then(function(test)
+                {
+                    test.admin = null;
+                    test.validate()
+                        .then(function()
+                        {
+                            assert(false, "Did not throw an error.");
+                            done();
+                        })
+                        .catch(errors.ValidationError, function()
+                        {
+                            done();
+                        });
+                });
             });
-        });
 
-        it('fails to validate an invalid choice', function(done)
-        {
-            TestModel.get('test1').then(function(test)
+            it('fails to validate an incorrect type', function(done)
             {
-                test.choice = 'baz';
-                test.toppings = ['cheese', 'pineapple'];
-                test.validate()
-                    .then(function()
-                    {
-                        assert(false, "Did not throw an error.");
-                        done();
-                    })
-                    .catch(errors.ValidationError, function()
-                    {
-                        done();
-                    });
+                TestModel.get('test1').then(function(test)
+                {
+                    test.admin = 3;
+                    test.validate()
+                        .then(function()
+                        {
+                            assert(false, "Did not throw an error.");
+                            done();
+                        })
+                        .catch(errors.ValidationError, function()
+                        {
+                            done();
+                        });
+                });
+            });
+
+            it('fails to validate an invalid choice', function(done)
+            {
+                TestModel.get('test1').then(function(test)
+                {
+                    test.choice = 'baz';
+                    test.toppings = ['cheese', 'pineapple'];
+                    test.validate()
+                        .then(function()
+                        {
+                            assert(false, "Did not throw an error.");
+                            done();
+                        })
+                        .catch(errors.ValidationError, function()
+                        {
+                            done();
+                        });
+                });
             });
         });
     });
