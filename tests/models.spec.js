@@ -21,7 +21,9 @@ describe('Models', function()
         TestModel = jbase.defineModel('model_test', {
             name: { type: String, required: true },
             admin: { type: Boolean, default: false, required: true },
-            foo: Number
+            foo: Number,
+            choice: { type: String, choices: ['foo', 'bar'] },
+            toppings: { type: Array, choices: ['cheese', 'pepperoni', 'mushrooms'] }
         }, { writeToDisk: false });
 
         // Populate the database
@@ -209,6 +211,83 @@ describe('Models', function()
                     assert.equal(filtered.length, 2);
                     done()
                 });
+        });
+    });
+
+    describe('Validation', function()
+    {
+        it('validates a correct instance', function(done)
+        {
+            TestModel.get('test1').then(function(test)
+            {
+                test.admin = true;
+                test.choice = 'bar';
+                test.toppings = ['cheese', 'mushrooms'];
+                test.validate()
+                    .then(function()
+                    {
+                        done();
+                    })
+                    .catch(errors.ValidationError, function(error)
+                    {
+                        done(error);
+                    });
+            });
+        });
+
+        it('fails to validate when missing a required field', function(done)
+        {
+            TestModel.get('test1').then(function(test)
+            {
+                test.admin = null;
+                test.validate()
+                    .then(function()
+                    {
+                        assert(false, "Did not throw an error.");
+                        done();
+                    })
+                    .catch(errors.ValidationError, function()
+                    {
+                        done();
+                    });
+            });
+        });
+
+        it('fails to validate an incorrect type', function(done)
+        {
+            TestModel.get('test1').then(function(test)
+            {
+                test.admin = 3;
+                test.validate()
+                    .then(function()
+                    {
+                        assert(false, "Did not throw an error.");
+                        done();
+                    })
+                    .catch(errors.ValidationError, function()
+                    {
+                        done();
+                    });
+            });
+        });
+
+        it('fails to validate an invalid choice', function(done)
+        {
+            TestModel.get('test1').then(function(test)
+            {
+                test.choice = 'baz';
+                test.toppings = ['cheese', 'pineapple'];
+                test.validate()
+                    .then(function()
+                    {
+                        assert(false, "Did not throw an error.");
+                        done();
+                    })
+                    .catch(errors.ValidationError, function()
+                    {
+                        done();
+                    });
+            });
         });
     });
 });
