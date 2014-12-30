@@ -271,6 +271,24 @@ describe('Models', function()
                             });
                     });
             });
+
+            it('can remove all instances', function(done)
+            {
+                TestModel.removeAll()
+                    .then(function()
+                    {
+                        TestModel.get('test4')
+                            .then(function()
+                            {
+                                assert(false, "Did not throw an error.");
+                                done();
+                            })
+                            .catch(errors.DocumentNotFound, function()
+                            {
+                                done();
+                            });
+                    });
+            });
         });
 
         describe('Validation', function()

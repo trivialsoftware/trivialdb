@@ -196,6 +196,12 @@ Models can also be removed via a filter:
 User.remove({ admin: true });
 ```
 
+#### Removing all Model Instances
+
+* `Model.removeAll()` - returns a promise that resolves once the sync has completed.
+
+This is provided as a convenience. It removes all instances of a model.
+
 #### Syncing
 
 Normally, in an ORM, if you either create a new model instance, or get a model instance somehow, and something else
