@@ -86,6 +86,8 @@ a type definition object. The supported options are:
 * `required` - Optional. If false (the default), null and undefined are allowed values for this field.
 * `default` - Optional. A value to default the field to. (This can easily be overwritten simply by assigning to the
 field.)
+* `choice` - Optional. A list of values that are valid for the field. (Arrays will have their contents individually
+checked.)
 
 #### Creating a Model
 
