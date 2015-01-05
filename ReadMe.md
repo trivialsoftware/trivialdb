@@ -63,7 +63,6 @@ Defining a model in JBase is very simple. Models and databases have a one to one
 _Note_: You will need to save the return value of `defineModel` and use that for querying or creating new instances.
 
 ```javascript
-
 // Define a user model
 var User = jbase.defineModel('users', {
     name: { type: String, required: true },
@@ -88,6 +87,32 @@ a type definition object. The supported options are:
 field.)
 * `choice` - Optional. A list of values that are valid for the field. (Arrays will have their contents individually
 checked.)
+
+##### Retrieving the Schema
+
+You can retrieve the schema a model was defined with by using the `schema` property on the model. (Note: this property
+becomes `$$schema` on model instances.)
+
+```javascript
+// Define a user model
+var User = jbase.defineModel('users', {
+    name: { type: String, required: true },
+    age: Number,
+    admin: { type: Boolean, required: true, default: false }
+});
+
+// Access the schema
+console.log('Schema:', User.schema);
+
+// Make a user instance
+var user = new User({ name: "Foo", age: 23, admin: true });
+
+// Access the schema
+console.log('Schema:', user.$$schema);
+```
+
+This can be useful in applications that need to handle converting of user input to appropriate types, or the generation
+of web forms based on the model.
 
 #### Creating a Model
 
