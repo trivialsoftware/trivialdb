@@ -1,6 +1,6 @@
 {
   "name": "jbase",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "A lightweight key/value json storage with persistence.",
   "main": "jbase.js",
   "scripts": {
@@ -15,9 +15,9 @@
   "author": "Christopher S. Case <chris.case@g33xnexus.com>",
   "bugs": "https://github.com/Morgul/jbase/issues",
   "homepage": "http://morgul.github.io/jbase/",
-  "repository" : {
-    "type" : "git",
-    "url" : "https://github.com/Morgul/jbase.git"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Morgul/jbase.git"
   },
   "license": "MIT",
   "dependencies": {
