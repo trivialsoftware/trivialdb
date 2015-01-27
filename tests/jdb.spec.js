@@ -7,6 +7,7 @@
 var fs = require('fs');
 var path = require('path');
 var assert = require("assert");
+var os = require('os');
 
 var Promise = require('bluebird');
 
@@ -19,8 +20,7 @@ describe('JDB Instance', function()
     var testDB = '{"cfvtjn3dzYLJzbbfKCcZsrTXDJw=": {"name":"Captain Hammer","role":"hero"},'
     + '"1lT/bTHNj2G3abAf+OsPNaV2Sgw=":{"name":"Dr. Horrible","role": "villian"}}';
 
-    //FIXME: This will not work on windows. I can't be bothered to fix it right now.
-    var rootPath = '/tmp';
+    var rootPath = os.tmpdir();
 
     fs.writeFileSync(path.resolve(rootPath, 'jdb_test.json'), testDB);
 
