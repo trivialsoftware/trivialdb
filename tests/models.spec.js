@@ -138,21 +138,6 @@ describe('Models', function()
             });
         });
 
-        it('automatically updates when the db changes', function(done)
-        {
-            TestModel.get('test1').then(function(test)
-            {
-                assert.equal(test.admin, false);
-
-                jbase.db('model_test').merge('test1', { admin: true })
-                    .then(function()
-                    {
-                        assert.equal(test.admin, true);
-                        done();
-                    });
-            });
-        });
-
         it('does not update automatically when the model is dirty', function(done)
         {
             TestModel.get('test1').then(function(test)
