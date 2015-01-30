@@ -26,6 +26,11 @@ describe('Models', function()
             toppings: { type: Array, choices: ['cheese', 'pepperoni', 'mushrooms'] }
         }, { writeToDisk: false });
 
+        PKTestModel = jbase.defineModel('pk_model_test', {
+            name: { type: String, required: true },
+            admin: { type: Boolean, default: false, required: true },
+        }, { writeToDisk: false, pk: 'name' });
+
         // Populate the database
         jbase.Promise.all([
                 jbase.db('model_test').store('test1', { name: 'foobar', admin: false }),
@@ -33,6 +38,13 @@ describe('Models', function()
                 jbase.db('model_test').store('test3', { name: 'foo 2', admin: false, foo: 3 }),
                 jbase.db('model_test').store('test4', { name: 'glipi', admin: true, foo: -1.5 })
             ])
+            .then(function()
+            {
+                return jbase.Promise.all([
+                    jbase.db('pk_model_test').store({ name: 'foobar', admin: false }),
+                    jbase.db('pk_model_test').store({ name: 'barbaz', admin: true })
+                ]);
+            })
             .then(function()
             {
                 done();
@@ -181,6 +193,26 @@ describe('Models', function()
                             });
                     });
             });
+        });
+
+        it('can specify a primary key', function(done)
+        {
+            PKTestModel.get('foobar')
+                .then(function(test)
+                {
+                    assert(test.id === test.name, "The 'id' property does not point to the correct field.");
+                })
+                .then(function()
+                {
+                    // Test saving
+                    return new PKTestModel({ name: 'tom', admin: true }).save()
+                        .then(function(test2)
+                        {
+                            assert(test2.id === test2.name, "The 'id' property does not point to the correct field.");
+                            assert(test2.$$values.id === undefined, "The model has an 'id' property in $$values.");
+                        });
+                })
+                .then(done, done);
         });
     });
 

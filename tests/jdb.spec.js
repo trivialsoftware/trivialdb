@@ -130,6 +130,17 @@ describe('JDB Instance', function()
                 done();
             }, 20);
         });
+
+        it('pk can be used to specify a field of the model to use as the id', function(done)
+        {
+            db = new JDB("test", { writeToDisk: false, pk: 'name' });
+            db.store({ name: 'bob', admin: false })
+                .then(function()
+                {
+                    assert.deepEqual(db.values, {'bob': { name: 'bob', admin: false }});
+                })
+                .then(done, done);
+        });
     });
 
     describe("Storing Values", function()

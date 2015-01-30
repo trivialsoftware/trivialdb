@@ -34,9 +34,10 @@ The JBase API is inspired (spiritually) by [RethinkDB](http://rethinkdb.com/) an
 [thinky](http://thinky.io/). These are two great projects, and once you outgrow JBase, I strongly encourage you to
 check them out!
 
-There are two different APIs, the low-level 'Database' API, and the higher level 'Model' API. Previous versions of JBase
-only had the Database API, so if you want to use what you're used to, feel free to keep using it. (You can even use both
-together in various ways.)
+There are two different APIs, the low-level [Database API](#database-api), and the higher level [Model API](#model-api).
+Previous versions of JBase only had the Database API, so if you want to use what you're used to, feel free to keep using
+it. (You can even use both together in various ways.) That being said, I strongly encourage you to check out the
+[Model API](#model-api), as it's got some really nice validation features, and is a great way to work.
 
 ### Model API
 
@@ -45,6 +46,7 @@ of working with models as opposed to direct database calls, and I've taken some 
 directly into JBase. Here's the current feature list:
 
 * Model validation
+* Primary Key support
 * Simple model definitions
 * Models serialize as JSON objects
 * Get & Filter functions that return model instances
@@ -58,7 +60,9 @@ Don't worry, you are not required to use the Model API, or even know it's there.
 * `defineModel(databaseName, modelDefinition, databaseOptions)` - Returns a `JDBModel`.
 
 Defining a model in JBase is very simple. Models and databases have a one to one relationship, so you can think of the
-`databaseName` as the name of the model, though they don't have to have an relation to each other.
+`databaseName` as the name of the model, though they don't have to have an relation to each other. As for the
+`databaseOptions`, these are defined [below](#options), and give you the ability to pass any of those options along to
+the underlying database.
 
 _Note_: You will need to save the return value of `defineModel` and use that for querying or creating new instances.
 
@@ -113,6 +117,38 @@ console.log('Schema:', user.$$schema);
 
 This can be useful in applications that need to handle converting of user input to appropriate types, or the generation
 of web forms based on the model.
+
+If should be noted that all models have a read-only `id` field. If you do not specify a key this will be a generated
+UUID.
+
+#### Defining a Primary Key
+
+Often times, a generic uuid is fine as the key for your model. However, sometimes it's more intuitive to make one of the
+fields the primary key, instead. JBase allows you to do this, simply by passing the `pk` option in to the database
+options object, when you define a model.
+
+```javascript
+var User = jbase.defineModel('users', {
+    name: { type: String, required: true },
+    age: Number,
+    admin: { type: Boolean, required: true, default: false }
+}, { pk: 'name' });
+
+// Make a user instance
+var user = new User({ name: "Foo", age: 23, admin: true });
+
+// The `id` property is equal to `name`:
+console.log(user.id === user.name);
+```
+
+There are some interesting caveats about specifying primary keys. First and foremost: **JBase will not ensure that your
+keys are unique.** If you attempt to save a model whose primary key overwrites another value, JBase will simply do what
+you asked, and overwrite. The reason for this is that JBase can't detect the difference between a new insert with a
+non-unique primary key, and an update. If you are going to use primary keys, it is up to you to ensure uniqueness.
+
+Additionally, when converting to JSON, the primary key will be duplicated in both the `id` property, and the property
+specified as the primary key. This is by design; you can always refer to the `id` property as the identifier of the
+object, regardless of if you're using a primary key. The small duplication is considered acceptable for the convenience.
 
 #### Creating a Model
 
