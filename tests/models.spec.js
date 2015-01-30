@@ -4,18 +4,18 @@
 // @module models.spec.js
 // ---------------------------------------------------------------------------------------------------------------------
 
+var _ = require('lodash');
 var assert = require("assert");
 
 var jbase = require('../jbase');
 var errors = require('../lib/errors');
-var models = require('../lib/models');
 
 // ---------------------------------------------------------------------------------------------------------------------
 
 describe('Models', function()
 {
 
-    var TestModel;
+    var TestModel, PKTestModel, DateTestModel;
     beforeEach(function(done)
     {
         TestModel = jbase.defineModel('model_test', {
@@ -24,6 +24,11 @@ describe('Models', function()
             foo: Number,
             choice: { type: String, choices: ['foo', 'bar'] },
             toppings: { type: Array, choices: ['cheese', 'pepperoni', 'mushrooms'] }
+        }, { writeToDisk: false });
+
+        DateTestModel = jbase.defineModel('date_model_test', {
+            name: { type: String, required: true },
+            created: { type: Date, default: Date.now() }
         }, { writeToDisk: false });
 
         PKTestModel = jbase.defineModel('pk_model_test', {
@@ -211,6 +216,16 @@ describe('Models', function()
                             assert(test2.id === test2.name, "The 'id' property does not point to the correct field.");
                             assert(test2.$$values.id === undefined, "The model has an 'id' property in $$values.");
                         });
+                })
+                .then(done, done);
+        });
+
+        it('correctly handles Date objects', function(done)
+        {
+            new DateTestModel({ name: "FredGeorge" }).save()
+                .then(function(test)
+                {
+                    assert(_.isDate(test.created));
                 })
                 .then(done, done);
         });
