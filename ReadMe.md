@@ -407,9 +407,44 @@ The options supported by the `db` call are:
     loadFromDisk: true | false, // Whether or not to read the database in from disk on load. (Default: `true`)
     rootPath: "...",            // The path to a folder that will contain the persisted database json files. (Default: './')
     writeDelay: ...,            // A number in milliseconds to wait between writes to the disk. (Default: 0)
-    prettyPrint: true | false   // Whether or not the json on disk should be pretty printed. (Default: `true`)
+    prettyPrint: true | false,  // Whether or not the json on disk should be pretty printed. (Default: `true`)
+    pk: "...",                  // The field in the object to use as the primary key. (Default: `undefined`)
+    idFunc: function(){...}     // The function to use to generate unique ids. (Default: `uuid.v4()`)
 }
 ```
+
+##### Custom ID Generation
+
+If you want to generate your own ids, and not use the uuids JBase generates by default, you can specify your own
+function in the database options. By specifying `idFunc`, JBase will use this function to generate all ids, when needed.
+The `idFunc` function is passed the object, so you can generate ids based on the object's content, if you wish. (An
+example of this would be generating a slug from an article's name.)
+
+```javascript
+function slugify(article)
+{
+    return article.name.toString().toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^\w\-]+/g, '')
+        .replace(/\-\-+/g, '-')
+        .replace(/^-+/, '')
+        .replace(/-+$/, '');
+} // end slugify
+
+// Declare a new database, using the slugify function above.
+db = new JDB("articles", { writeToDisk: false, idFunc: slugify });
+
+// Now, we save an object
+db.store({ name: "JBase: now with id generation functions!", body: "Read the title, dude." })
+    .then(function(id)
+    {
+        // This prints the id: 'jbase-now-with-id-generation-functions'.
+        console.log('id:', id);
+    });
+```
+
+Be careful; it is up to you to ensure your generated ids are unique. Additionally, if your generation function blows up,
+JBase may return some nonsensical errors. (This may improve in the future.)
 
 #### Storing Values
 
@@ -421,7 +456,8 @@ since JBase never modifies your value. Also, while you can specify a key, you wi
 it will silently overwrite). Instead, I recommend you let JBase create the key for you (by not passing one).
 
 When you let JBase auto generate the key, you can find out what that key was by using `.then()`, which will be passed
-the newly generated key.
+the newly generated key. This auto generation is done using the `idFunc` function passed in the options. If not
+specified, it will use `node-uuid` to generate uuids.
 
 ```javascript
 // Store an object

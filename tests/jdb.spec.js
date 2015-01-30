@@ -141,6 +141,27 @@ describe('JDB Instance', function()
                 })
                 .then(done, done);
         });
+
+        it('idFunc can be used to specify the id generation function', function(done)
+        {
+            function slugify(article)
+            {
+                return article.name.toString().toLowerCase()
+                    .replace(/\s+/g, '-')           // Replace spaces with -
+                    .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
+                    .replace(/\-\-+/g, '-')         // Replace multiple - with single -
+                    .replace(/^-+/, '')             // Trim - from start of text
+                    .replace(/-+$/, '');            // Trim - from end of text
+            } // end slugify
+
+            db = new JDB("articles", { writeToDisk: false, idFunc: slugify });
+            db.store({ name: "JBase: now with id generation functions!", body: "Read the title, dude." })
+                .then(function()
+                {
+                    assert.deepEqual(db.values, {"jbase-now-with-id-generation-functions":{"name":"JBase: now with id generation functions!","body":"Read the title, dude."}});
+                })
+                .then(done, done);
+        });
     });
 
     describe("Storing Values", function()
