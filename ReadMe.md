@@ -300,7 +300,7 @@ Keep in mind, when you force a sync, _all changes to the model instance will be 
 
 #### Getting a Model by ID
 
-* `Model.get(modelID)` = returns a promise that either resolves with a model instance, ore rejects with a
+* `Model.get(modelID)` - returns a promise that either resolves with a model instance, ore rejects with a
 `DocumentNotFound` error.
 
 You can easily get model instances by id. Simply call `Model.get` and pass in the id you're looking for. If the id does
@@ -320,6 +320,20 @@ User.get('existing-id')
     .catch(jbase.errors.DocumentNotFound, function(error)
     {
         // Handle not found case
+    });
+```
+
+#### Getting all Models
+
+* `Model.all()` - returns a promise that resolves to a list, or an error.
+
+This is a nice shortcut to getting all instances of the Model.
+
+```javascript
+User.all()
+    .then(function(users)
+    {
+        // Work with all users here
     });
 ```
 

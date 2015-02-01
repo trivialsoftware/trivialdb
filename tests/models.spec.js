@@ -256,6 +256,16 @@ describe('Models', function()
                 });
         });
 
+        it('can retrieve all models', function(done)
+        {
+            TestModel.all()
+                .then(function(allModels)
+                {
+                    assert.equal(allModels.length, 5);
+                })
+                .then(done, done);
+        });
+
         it('can filter all models down to a subset', function(done)
         {
             TestModel.filter({ admin: true })
