@@ -33,7 +33,7 @@ describe('Models', function()
 
         PKTestModel = jbase.defineModel('pk_model_test', {
             name: { type: String, required: true },
-            admin: { type: Boolean, default: false, required: true },
+            admin: { type: Boolean, default: false, required: true }
         }, { writeToDisk: false, pk: 'name' });
 
         // Populate the database
@@ -71,12 +71,12 @@ describe('Models', function()
         {
             var test = new TestModel({ name: 'test' });
 
-            test.save().then(function()
+            test.save().then(function(test)
             {
                 // Ensure the document is saved in the db correctly.
                 jbase.db('model_test').get(test.id).then(function(doc)
                 {
-                    assert.deepEqual(doc, { id: test.id, name: 'test', admin: false });
+                    assert.deepEqual(doc, { id: test.id, name: 'test' });
                     done();
                 });
             });
@@ -155,25 +155,6 @@ describe('Models', function()
             });
         });
 
-        it('does not update automatically when the model is dirty', function(done)
-        {
-            TestModel.get('test1').then(function(test)
-            {
-                assert.equal(test.admin, false);
-
-                test.foo = 23;
-
-                assert.equal(test.$dirty, true);
-
-                jbase.db('model_test').merge('test1', { admin: true })
-                    .then(function()
-                    {
-                        assert.equal(test.admin, false);
-                        done();
-                    });
-            });
-        });
-
         it('can force a sync', function(done)
         {
             TestModel.get('test1').then(function(test)
@@ -187,8 +168,6 @@ describe('Models', function()
                 jbase.db('model_test').merge('test1', { admin: true })
                     .then(function()
                     {
-                        assert.equal(test.admin, false);
-
                         test.sync(true)
                             .then(function()
                             {
