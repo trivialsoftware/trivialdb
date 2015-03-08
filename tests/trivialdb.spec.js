@@ -1,41 +1,41 @@
 // ---------------------------------------------------------------------------------------------------------------------
-// Unit Tests for the jbase.spec.js module.
+// Unit Tests for the trivialdb.spec.js module.
 //
-// @module jbase.spec.js
+// @module trivialdb.spec.js
 // ---------------------------------------------------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------------------------------------------------
-// Unit Tests for the jdb.spec.js module.
+// Unit Tests for the tdb.spec.js module.
 //
-// @module jdb.spec.js
+// @module tdb.spec.js
 // ---------------------------------------------------------------------------------------------------------------------
 
 var assert = require("assert");
-var jbase = require('../jbase');
-var JDB = require('../lib/jdb');
+var trivialdb = require('../trivialdb');
+var JDB = require('../lib/tdb');
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-describe('JBase', function()
+describe('TrivialDB', function()
 {
     describe('db()', function()
     {
         it('returns a JDB instance', function()
         {
-            var db = jbase.db("jbase_test", { writeToDisk: false });
+            var db = trivialdb.db("trivialdb_test", { writeToDisk: false });
             assert(db instanceof JDB, "db is not an instance of JDB");
         });
 
         it('passes options to the JDB instance', function()
         {
-            var db = jbase.db("jbase_test", { writeToDisk: false });
+            var db = trivialdb.db("trivialdb_test", { writeToDisk: false });
             assert.equal(db.options.writeToDisk, false);
         });
 
         it('returns the same JDB instance if you request it multiple times', function()
         {
-            var db = jbase.db("jbase_test", { writeToDisk: false });
-            var db2 = jbase.db("jbase_test");
+            var db = trivialdb.db("trivialdb_test", { writeToDisk: false });
+            var db2 = trivialdb.db("trivialdb_test");
 
             assert.equal(db, db2);
         });
@@ -45,7 +45,7 @@ describe('JBase', function()
     {
         it('returns a custom model instance', function()
         {
-            var ModelInst = jbase.defineModel('jbase_test', {
+            var ModelInst = trivialdb.defineModel('trivialdb_test', {
                 name: String
             }, { writeToDisk: false });
 

@@ -7,7 +7,7 @@
 var _ = require('lodash');
 var assert = require("assert");
 
-var jbase = require('../jbase');
+var trivialdb = require('../trivialdb');
 var errors = require('../lib/errors');
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -18,7 +18,7 @@ describe('Models', function()
     var TestModel, PKTestModel, DateTestModel;
     beforeEach(function(done)
     {
-        TestModel = jbase.defineModel('model_test', {
+        TestModel = trivialdb.defineModel('model_test', {
             name: { type: String, required: true },
             admin: { type: Boolean, default: false, required: true },
             foo: Number,
@@ -26,28 +26,28 @@ describe('Models', function()
             toppings: { type: Array, choices: ['cheese', 'pepperoni', 'mushrooms'] }
         }, { writeToDisk: false });
 
-        DateTestModel = jbase.defineModel('date_model_test', {
+        DateTestModel = trivialdb.defineModel('date_model_test', {
             name: { type: String, required: true },
             created: { type: Date, default: Date.now() }
         }, { writeToDisk: false });
 
-        PKTestModel = jbase.defineModel('pk_model_test', {
+        PKTestModel = trivialdb.defineModel('pk_model_test', {
             name: { type: String, required: true },
             admin: { type: Boolean, default: false, required: true }
         }, { writeToDisk: false, pk: 'name' });
 
         // Populate the database
-        jbase.Promise.all([
-                jbase.db('model_test').store('test1', { name: 'foobar', admin: false }),
-                jbase.db('model_test').store('test2', { name: 'barbaz', admin: true }),
-                jbase.db('model_test').store('test3', { name: 'foo 2', admin: false, foo: 3 }),
-                jbase.db('model_test').store('test4', { name: 'glipi', admin: true, foo: -1.5 })
+        trivialdb.Promise.all([
+                trivialdb.db('model_test').store('test1', { name: 'foobar', admin: false }),
+                trivialdb.db('model_test').store('test2', { name: 'barbaz', admin: true }),
+                trivialdb.db('model_test').store('test3', { name: 'foo 2', admin: false, foo: 3 }),
+                trivialdb.db('model_test').store('test4', { name: 'glipi', admin: true, foo: -1.5 })
             ])
             .then(function()
             {
-                return jbase.Promise.all([
-                    jbase.db('pk_model_test').store({ name: 'foobar', admin: false }),
-                    jbase.db('pk_model_test').store({ name: 'barbaz', admin: true })
+                return trivialdb.Promise.all([
+                    trivialdb.db('pk_model_test').store({ name: 'foobar', admin: false }),
+                    trivialdb.db('pk_model_test').store({ name: 'barbaz', admin: true })
                 ]);
             })
             .then(function()
@@ -74,7 +74,7 @@ describe('Models', function()
             test.save().then(function(test)
             {
                 // Ensure the document is saved in the db correctly.
-                jbase.db('model_test').get(test.id).then(function(doc)
+                trivialdb.db('model_test').get(test.id).then(function(doc)
                 {
                     assert.deepEqual(doc, { id: test.id, name: 'test' });
                     done();
@@ -90,7 +90,7 @@ describe('Models', function()
                 test.save().then(function()
                 {
                     // Ensure the document is saved in the db correctly.
-                    jbase.db('model_test').get(test.id).then(function(doc)
+                    trivialdb.db('model_test').get(test.id).then(function(doc)
                     {
                         assert.deepEqual(doc, { id: test.id, name: 'foobar', admin: true });
                         done();
@@ -165,7 +165,7 @@ describe('Models', function()
 
                 assert.equal(test.$dirty, true);
 
-                jbase.db('model_test').merge('test1', { admin: true })
+                trivialdb.db('model_test').merge('test1', { admin: true })
                     .then(function()
                     {
                         test.sync(true)

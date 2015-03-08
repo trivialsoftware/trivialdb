@@ -1,8 +1,8 @@
 {
-  "name": "jbase",
+  "name": "trivialdb",
   "version": "1.3.0",
   "description": "A lightweight key/value json storage with persistence.",
-  "main": "jbase.js",
+  "main": "trivialdb.js",
   "scripts": {
     "test": "./node_modules/.bin/mocha tests --reporter spec --recursive"
   },
@@ -13,11 +13,11 @@
     "storage"
   ],
   "author": "Christopher S. Case <chris.case@g33xnexus.com>",
-  "bugs": "https://github.com/Morgul/jbase/issues",
-  "homepage": "http://morgul.github.io/jbase/",
+  "bugs": "https://github.com/Morgul/trivialdb/issues",
+  "homepage": "http://morgul.github.io/trivialdb/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Morgul/jbase.git"
+    "url": "https://github.com/Morgul/trivialdb.git"
   },
   "license": "MIT",
   "dependencies": {

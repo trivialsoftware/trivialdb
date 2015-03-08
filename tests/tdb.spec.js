@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------------------------------------------------
-// Unit Tests for the jdb.spec.js module.
+// Unit Tests for the tdb.spec.js module.
 //
-// @module jdb.spec.js
+// @module tdb.spec.js
 // ---------------------------------------------------------------------------------------------------------------------
 
 var fs = require('fs');
@@ -11,7 +11,7 @@ var os = require('os');
 
 var Promise = require('bluebird');
 
-var JDB = require('../lib/jdb');
+var JDB = require('../lib/tdb');
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -155,10 +155,10 @@ describe('JDB Instance', function()
             } // end slugify
 
             db = new JDB("articles", { writeToDisk: false, idFunc: slugify });
-            db.store({ name: "JBase: now with id generation functions!", body: "Read the title, dude." })
+            db.store({ name: "TrivialDB: now with id generation functions!", body: "Read the title, dude." })
                 .then(function()
                 {
-                    assert.deepEqual(db.values, {"jbase-now-with-id-generation-functions":{"name":"JBase: now with id generation functions!","body":"Read the title, dude."}});
+                    assert.deepEqual(db.values, {"trivialdb-now-with-id-generation-functions":{"name":"TrivialDB: now with id generation functions!","body":"Read the title, dude."}});
                 })
                 .then(done, done);
         });

@@ -5,7 +5,7 @@
 //----------------------------------------------------------------------------------------------------------------------
 
 var util = require('util');
-var jbase = require('../jbase');
+var trivialdb = require('../trivialdb');
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -17,7 +17,7 @@ function pprint(obj)
 //----------------------------------------------------------------------------------------------------------------------
 
 // Create a new example db
-var db = jbase.db('example', { writeToDisk: false });
+var db = trivialdb.db('example', { writeToDisk: false });
 
 // Create some new keys
 var hammerID, horribleID, moistID, pennyID;

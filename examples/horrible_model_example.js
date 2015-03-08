@@ -5,7 +5,7 @@
 //----------------------------------------------------------------------------------------------------------------------
 
 var util = require('util');
-var jbase = require('../jbase');
+var trivialdb = require('../trivialdb');
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -16,7 +16,7 @@ function pprint(obj)
 
 //----------------------------------------------------------------------------------------------------------------------
 
-var Character = jbase.defineModel('characters', {
+var Character = trivialdb.defineModel('characters', {
     name: { type: String, required: true },
     role: String,
     nemeses: { type: Array, default: [] },
@@ -30,7 +30,7 @@ var moist = new Character({ name: "Moist", role: 'henchman', nemeses: [] });
 var penny = new Character({ name: "Penny", role: 'love interest', nemeses: []});
 
 // Save the characters
-jbase.Promise.all([
+trivialdb.Promise.all([
         hammer.save(),
         horrible.save(),
         moist.save(),
@@ -39,7 +39,7 @@ jbase.Promise.all([
     .then(function()
     {
         // We've finished adding values, so print out the database:
-        console.log('\n[Step 1] db.values:\n%s', pprint(jbase.db('characters').values));
+        console.log('\n[Step 1] db.values:\n%s', pprint(trivialdb.db('characters').values));
 
         // Update hammer's values
         hammer.nemeses.push(horrible.id);
@@ -50,7 +50,7 @@ jbase.Promise.all([
         horrible.loveInterest = penny.id;
 
         // Save both
-        return jbase.Promise.all([
+        return trivialdb.Promise.all([
             hammer.save(),
             horrible.save()
         ]);
@@ -58,7 +58,7 @@ jbase.Promise.all([
     .then(function()
     {
         // We've finished updating values, so print out the database:
-        console.log('\n[Step 2] db.values:\n%s', pprint(jbase.db('characters').values));
+        console.log('\n[Step 2] db.values:\n%s', pprint(trivialdb.db('characters').values));
 
         // Filter for just the people who love Penny
         return Character.filter({ loveInterest: penny.id })

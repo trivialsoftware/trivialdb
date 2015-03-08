@@ -1,19 +1,19 @@
-# JBase
+# TrivialDB
 
-[![Build Status](https://travis-ci.org/Morgul/jbase.svg?branch=master)](https://travis-ci.org/Morgul/jbase)
+[![Build Status](https://travis-ci.org/Morgul/trivialdb.svg?branch=master)](https://travis-ci.org/Morgul/trivialdb)
 
 A lightweight key/value json storage with persistence. Conceptually, it's just a thin API wrapper around plain javascript
 objects; with the added bonus of doing throttled asynchronous writes on changes. Its on disk format is simply "json on
-disk"; basically the jsonified version of the plain object, saved to a file on disk. This makes making hand edits not
+disk"; basically the json version of the plain object, saved to a file on disk. This makes making hand edits not
 just possible, but simple.
 
 ## Use Case
 
-JBase is intended for simple storage needs. It's in-process, small, and very fast for small data sets. It takes almost
+TrivialDB is intended for simple storage needs. It's in-process, small, and very fast for small data sets. It takes almost
 nothing to get up and going with it, and it has just enough features to make it worth while. Personally I've found its
 a great fit for a development database for websites, or even to power a simple blog.
 
-The one caveat to keep in mind is this: _every database your work with is stored in memory_. Since JBase is in-process,
+The one caveat to keep in mind is this: _every database your work with is stored in memory_. Since TrivialDB is in-process,
 you might run into the memory limit of node; on versions before 0.11+ there's a 1.4GB limit. If you try and load a
 database of all your cat pictures, you might run out of memory pretty quickly.
 
@@ -25,25 +25,25 @@ in memory anyway; your data sets can get relatively large before you even need t
 Simply install with npm:
 
 ```bash
-$ npm install --save jbase
+$ npm install --save trivialdb:
 ```
 
 ## API
 
-The JBase API is inspired (spiritually) by [RethinkDB](http://rethinkdb.com/) and it's node.js ORM,
-[thinky](http://thinky.io/). These are two great projects, and once you outgrow JBase, I strongly encourage you to
+The TrivialDB API is inspired (spiritually) by [RethinkDB](http://rethinkdb.com/) and it's node.js ORM,
+[thinky](http://thinky.io/). These are two great projects, and once you outgrow TrivialDB, I strongly encourage you to
 check them out!
 
 There are two different APIs, the low-level [Database API](#database-api), and the higher level [Model API](#model-api).
-Previous versions of JBase only had the Database API, so if you want to use what you're used to, feel free to keep using
+Previous versions of TrivialDB only had the Database API, so if you want to use what you're used to, feel free to keep using
 it. (You can even use both together in various ways.) That being said, I strongly encourage you to check out the
 [Model API](#model-api), as it's got some really nice validation features, and is a great way to work.
 
 ### Model API
 
-The model API was added to make JBase feel much more like the larger ORM style solutions out there. I'm a very big fan
+The model API was added to make TrivialDB feel much more like the larger ORM style solutions out there. I'm a very big fan
 of working with models as opposed to direct database calls, and I've taken some of my favorite features and baked them
-directly into JBase. Here's the current feature list:
+directly into TrivialDB. Here's the current feature list:
 
 * Model validation
 * Primary Key support
@@ -59,7 +59,7 @@ Don't worry, you are not required to use the Model API, or even know it's there.
 
 * `defineModel(databaseName, modelDefinition, databaseOptions)` - Returns a `JDBModel`.
 
-Defining a model in JBase is very simple. Models and databases have a one to one relationship, so you can think of the
+Defining a model in TrivialDB is very simple. Models and databases have a one to one relationship, so you can think of the
 `databaseName` as the name of the model, though they don't have to have an relation to each other. As for the
 `databaseOptions`, these are defined [below](#options), and give you the ability to pass any of those options along to
 the underlying database.
@@ -68,14 +68,14 @@ _Note_: You will need to save the return value of `defineModel` and use that for
 
 ```javascript
 // Define a user model
-var User = jbase.defineModel('users', {
+var User = trivialdb.defineModel('users', {
     name: { type: String, required: true },
     age: Number,
     admin: { type: Boolean, required: true, default: false }
 });
 
 // Define an in-memory only model
-var Session = jbase.defineModel('sessions', {
+var Session = trivialdb.defineModel('sessions', {
     userID: { type: String, required: true }
 }, { writeToDisk: false });
 ```
@@ -99,7 +99,7 @@ becomes `$$schema` on model instances.)
 
 ```javascript
 // Define a user model
-var User = jbase.defineModel('users', {
+var User = trivialdb.defineModel('users', {
     name: { type: String, required: true },
     age: Number,
     admin: { type: Boolean, required: true, default: false }
@@ -124,11 +124,11 @@ UUID.
 #### Defining a Primary Key
 
 Often times, a generic uuid is fine as the key for your model. However, sometimes it's more intuitive to make one of the
-fields the primary key, instead. JBase allows you to do this, simply by passing the `pk` option in to the database
+fields the primary key, instead. TrivialDB allows you to do this, simply by passing the `pk` option in to the database
 options object, when you define a model.
 
 ```javascript
-var User = jbase.defineModel('users', {
+var User = trivialdb.defineModel('users', {
     name: { type: String, required: true },
     age: Number,
     admin: { type: Boolean, required: true, default: false }
@@ -141,9 +141,9 @@ var user = new User({ name: "Foo", age: 23, admin: true });
 console.log(user.id === user.name);
 ```
 
-There are some interesting caveats about specifying primary keys. First and foremost: **JBase will not ensure that your
-keys are unique.** If you attempt to save a model whose primary key overwrites another value, JBase will simply do what
-you asked, and overwrite. The reason for this is that JBase can't detect the difference between a new insert with a
+There are some interesting caveats about specifying primary keys. First and foremost: **TrivialDB will not ensure that your
+keys are unique.** If you attempt to save a model whose primary key overwrites another value, TrivialDB will simply do what
+you asked, and overwrite. The reason for this is that TrivialDB can't detect the difference between a new insert with a
 non-unique primary key, and an update. If you are going to use primary keys, it is up to you to ensure uniqueness.
 
 Additionally, when converting to JSON, the primary key will be duplicated in both the `id` property, and the property
@@ -207,7 +207,7 @@ user.validate()
     {
         // We don't get here.
     })
-    .catch(jbase.errors.ValidationError, function()
+    .catch(trivialdb.errors.ValidationError, function()
     {
         // We catch the error, and handle it here.
     });
@@ -267,7 +267,7 @@ This is provided as a convenience. It removes all instances of a model.
 
 Normally, in an ORM, if you either create a new model instance, or get a model instance somehow, and something else
 changes the database, your model instance is out of date and doesn't get those changes. However, because of the nature
-of JBase, it was very easy to make the models smart enough to update themselves whenever something changes in the
+of TrivialDB, it was very easy to make the models smart enough to update themselves whenever something changes in the
 database.
 
 That being said, there is an issue of how do we merge your unsaved changes when something else has updated the database?
@@ -317,7 +317,7 @@ User.get('existing-id')
 
 // Get a non-existent id
 User.get('existing-id')
-    .catch(jbase.errors.DocumentNotFound, function(error)
+    .catch(trivialdb.errors.DocumentNotFound, function(error)
     {
         // Handle not found case
     });
@@ -361,26 +361,26 @@ things this way, should you need it, you can use it.
 
 ### Database API
 
-This is the API that previous versions of JBase pioneered. It's relatively low-level, and if that's how you'd rather
-work with your database, that's fine. It is still the primary focus of JBase.
+This is the API that previous versions of TrivialDB pioneered. It's relatively low-level, and if that's how you'd rather
+work with your database, that's fine. It is still the primary focus of TrivialDB.
 
 #### **New in 1.0.0**
 
 The Database API has recently changed. As I've been building projects, I've discovered that Promise-based APIs are both elegant
 and incredibly convenient. I have opted to make the almost entire API promise-based. This has a small performance hit on
-individual operations, however, it also makes all calls asynchronous, which helps with JBase's ability to handle load.
+individual operations, however, it also makes all calls asynchronous, which helps with TrivialDB's ability to handle load.
 
 If you do not like promises, or disagree with this change, then I recommend using
-[v0.9.0](https://github.com/Morgul/jbase/releases/tag/v0.9.0).
+[v0.9.0](https://github.com/Morgul/trivialdb/releases/tag/v0.9.0).
 
 ##### Promises
 
-Because of the change to promises, JBase now exposes our internal Promise object as `jbase.Promise`, so you can
+Because of the change to promises, TrivialDB now exposes our internal Promise object as `trivialdb.Promise`, so you can
 leverage it  if you want to. (We use [bluebird](https://github.com/petkaantonov/bluebird).)
 
 ```javascript
-var jbase = require('jbase');
-var Promise = jbase.Promise;
+var trivialdb = require('trivialdb');
+var Promise = trivialdb.Promise;
 
 // Work with `Promise` here
 ```
@@ -389,14 +389,14 @@ var Promise = jbase.Promise;
 
 * `db(databaseName, options)` - Returns a database instance.
 
-JBase lazily loads databases. JBase also creates databases if they don't exist. To load or create a database:
+TrivialDB lazily loads databases. TrivialDB also creates databases if they don't exist. To load or create a database:
 
 ```javascript
 // Open or create a database
-var db = jbase.db('some_db');
+var db = trivialdb.db('some_db');
 
 // Open or create a database, with options
-var db = jbase.db('some_db', { writeToDisk: false });
+var db = trivialdb.db('some_db', { writeToDisk: false });
 ```
 
 This will look for a file named `"./some_db.json"`. (If your database lives somewhere else, you can pass the `rootPath`
@@ -429,8 +429,8 @@ The options supported by the `db` call are:
 
 ##### Custom ID Generation
 
-If you want to generate your own ids, and not use the uuids JBase generates by default, you can specify your own
-function in the database options. By specifying `idFunc`, JBase will use this function to generate all ids, when needed.
+If you want to generate your own ids, and not use the uuids TrivialDB generates by default, you can specify your own
+function in the database options. By specifying `idFunc`, TrivialDB will use this function to generate all ids, when needed.
 The `idFunc` function is passed the object, so you can generate ids based on the object's content, if you wish. (An
 example of this would be generating a slug from an article's name.)
 
@@ -449,27 +449,27 @@ function slugify(article)
 db = new JDB("articles", { writeToDisk: false, idFunc: slugify });
 
 // Now, we save an object
-db.store({ name: "JBase: now with id generation functions!", body: "Read the title, dude." })
+db.store({ name: "TrivialDB: now with id generation functions!", body: "Read the title, dude." })
     .then(function(id)
     {
-        // This prints the id: 'jbase-now-with-id-generation-functions'.
+        // This prints the id: 'trivialdb-now-with-id-generation-functions'.
         console.log('id:', id);
     });
 ```
 
 Be careful; it is up to you to ensure your generated ids are unique. Additionally, if your generation function blows up,
-JBase may return some nonsensical errors. (This may improve in the future.)
+TrivialDB may return some nonsensical errors. (This may improve in the future.)
 
 #### Storing Values
 
 * `store(value)` - Returns a promise resolved with `key`.
 * `store(key, value)` - Returns a promise resolved with `key`.
 
-Since JBase is a key/value storage, all values are stored under a key. This key is not part of the value that gets stored,
-since JBase never modifies your value. Also, while you can specify a key, you will need to ensure it's unique (otherwise
-it will silently overwrite). Instead, I recommend you let JBase create the key for you (by not passing one).
+Since TrivialDB is a key/value storage, all values are stored under a key. This key is not part of the value that gets stored,
+since TrivialDB never modifies your value. Also, while you can specify a key, you will need to ensure it's unique (otherwise
+it will silently overwrite). Instead, I recommend you let TrivialDB create the key for you (by not passing one).
 
-When you let JBase auto generate the key, you can find out what that key was by using `.then()`, which will be passed
+When you let TrivialDB auto generate the key, you can find out what that key was by using `.then()`, which will be passed
 the newly generated key. This auto generation is done using the `idFunc` function passed in the options. If not
 specified, it will use `node-uuid` to generate uuids.
 
@@ -501,7 +501,7 @@ db.store('my_key', { foo: "bar!", test: "Apples" })
 
 * `get(key)` - Returns a promise resolved to the value or `undefined`.
 
-JBase only supports direct lookups by key. It returns a promise resolved to the value stored.
+TrivialDB only supports direct lookups by key. It returns a promise resolved to the value stored.
 
 ```javascript
 // Get an object
@@ -516,7 +516,7 @@ db.get('my_key')
 
 * `merge(key, partialObj)` - Returns a promise resolved to the new value.
 
-JBase support partial object updates. JBase will take whatever object you pass in, and merge that object with the value
+TrivialDB support partial object updates. TrivialDB will take whatever object you pass in, and merge that object with the value
 stored at that key. If there is no value, it works exactly like `store`. The resulting object is returned.
 
 ```javascript
@@ -533,7 +533,7 @@ db.merge('my_key', { test: "Oranges" })
 
 * `filter(filter)` - Returns a promise resolved to an object of filtered values.
 
-Sometimes, you need to query based on more than just the key. To do that, JBase gives you a very simple filter query. It
+Sometimes, you need to query based on more than just the key. To do that, TrivialDB gives you a very simple filter query. It
 iterates over every value in the database, and passes that into your filter function. If the function returns true, that
 value is included in the results, otherwise it's omitted.
 
@@ -568,7 +568,7 @@ db.filter({ foo: 'bar!' })
 * `sync()` - Returns a promise resolved once the database is considered 'settled'.
 
 You can directly access the key/value store with the `values` property on the database instance. This is exposed
-explicitly to allow you as much freedom to work with your data as you might want. However, JBase can't detect any
+explicitly to allow you as much freedom to work with your data as you might want. However, TrivialDB can't detect any
 changes you make directly, so you will need to call the `sync` function to get your changes to persist to disk.
 
 ```javascript
@@ -601,17 +601,17 @@ caveats of working with a plain javascript object apply. Just remember to call `
 ##### New in 1.0.0
 
 Whenever `store` or `merge` are called, a `sync` event is fired from the database object. You can use this should you
-need to know when JBase is syncing to disk.
+need to know when TrivialDB is syncing to disk.
 
 ## Status
 
-JBase is reasonably stable, and since the code base is small enough, it's relatively immune to the most common forms of
-'code rot'. I make improvements when they're needed, or if someone files an issue. That being said, I consider JBase
-'production ready', provided you meet the intended use case.
+TrivialDB is reasonably stable, and since the code base is small enough, it's relatively immune to the most common forms
+of 'code rot'. I make improvements when they're needed, or if someone files an issue. That being said, I consider
+TrivialDB production ready, provided you meet the intended use case.
 
 ## Contributing
 
-While I only work on JBase in my spare time (what little there is), I use it for several of my projects. I'm more than
+While I only work on TrivialDB in my spare time (what little there is), I use it for several of my projects. I'm more than
 happy to accept merge requests, and/or any issues filed. If you want to fork it and improve part of the API, I'm ok with
 that too, however I ask you open an issue to discuss your proposed changes _first_. And, since it's MIT licensed, you
 can, of course, take the code and use it in your own projects.
