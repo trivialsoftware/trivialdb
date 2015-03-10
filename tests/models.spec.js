@@ -376,6 +376,59 @@ describe('Models', function()
                     });
             });
         });
+
+        describe('Relations', function()
+        {
+            xit('supports one-to-one relationships', function(done)
+            {
+
+            });
+
+            xit('supports one-to-many relationships', function(done)
+            {
+
+            });
+
+            xit('supports many-to-one relationships', function(done)
+            {
+
+            });
+
+            xit('supports many-to-many relationships', function(done)
+            {
+
+            });
+
+            xit('populates relationships', function(done)
+            {
+
+            });
+
+            xit('depopulates relationships', function(done)
+            {
+
+            });
+
+            xit('includes populated models in `toJSON()`', function(done)
+            {
+
+            });
+
+            xit('supports hiding the key of relationships from `toJSON()`', function(done)
+            {
+
+            });
+
+            xit('correctly saves changes when `hasOne` relation field is assigned to', function(done)
+            {
+
+            });
+
+            xit('correctly saves changes when `hasMany` relation field is assigned to', function(done)
+            {
+
+            });
+        });
     });
 });
 
