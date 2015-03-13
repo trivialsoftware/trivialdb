@@ -15,7 +15,7 @@ var errors = require('../lib/errors');
 describe('Models', function()
 {
 
-    var TestModel, PKTestModel, DateTestModel;
+    var TestModel, DateTestModel, PKTestModel, NestedTestModel;
     beforeEach(function(done)
     {
         TestModel = trivialdb.defineModel('model_test', {
@@ -36,6 +36,14 @@ describe('Models', function()
             admin: { type: Boolean, default: false, required: true }
         }, { writeToDisk: false, pk: 'name' });
 
+        NestedTestModel = trivialdb.defineModel('nested_test_model', {
+            name: String,
+            test: {
+                foo: String,
+                bar: Number
+            }
+        }, { writeToDisk: false, pk: 'name' });
+
         // Populate the database
         trivialdb.Promise.all([
                 trivialdb.db('model_test').store('test1', { name: 'foobar', admin: false }),
@@ -48,6 +56,13 @@ describe('Models', function()
                 return trivialdb.Promise.all([
                     trivialdb.db('pk_model_test').store({ name: 'foobar', admin: false }),
                     trivialdb.db('pk_model_test').store({ name: 'barbaz', admin: true })
+                ]);
+            })
+            .then(function()
+            {
+                return trivialdb.Promise.all([
+                    trivialdb.db('nested_test_model').store({ name: 'nt1', test: { foo: "Bar!", bar: 3 } }),
+                    trivialdb.db('nested_test_model').store({ name: 'nt2', test: { foo: "apples"} })
                 ]);
             })
             .then(function()
@@ -205,6 +220,24 @@ describe('Models', function()
                 .then(function(test)
                 {
                     assert(_.isDate(test.created));
+                })
+                .then(done, done);
+        });
+
+        it('supports nested schemas', function(done)
+        {
+            NestedTestModel.get('nt1')
+                .then(function(model)
+                {
+                    assert.equal(model.test.foo, "Bar!");
+                })
+                .then(function()
+                {
+                    return (new NestedTestModel({ name: 'foo', test: { bar: 5 } })).save()
+                        .then(function(model)
+                        {
+                            assert.equal(model.test.bar, 5);
+                        });
                 })
                 .then(done, done);
         });
@@ -386,6 +419,27 @@ describe('Models', function()
                             done();
                         });
                 });
+            });
+
+            it('fails to validate an incorrect type on a nested field', function(done)
+            {
+                NestedTestModel.get('nt2')
+                    .then(function(model)
+                    {
+                        assert.equal(model.test.foo, "apples");
+
+                        model.test.bar = "omg!";
+                        return model.validate()
+                            .then(function()
+                            {
+                                assert(false, "Did not throw an error.");
+                                done();
+                            })
+                            .catch(errors.ValidationError, function()
+                            {
+                                done();
+                            });
+                    });
             });
         });
     });
