@@ -16,7 +16,7 @@ describe('Models', function()
 {
 
     var TestModel, DateTestModel, PKTestModel, NestedTestModel;
-    beforeEach(function(done)
+    beforeEach(function()
     {
         TestModel = trivialdb.defineModel('model_test', {
             name: { type: String, required: true },
@@ -45,7 +45,7 @@ describe('Models', function()
         }, { writeToDisk: false, pk: 'name' });
 
         // Populate the database
-        trivialdb.Promise.all([
+        return trivialdb.Promise.all([
                 trivialdb.db('model_test').store('test1', { name: 'foobar', admin: false }),
                 trivialdb.db('model_test').store('test2', { name: 'barbaz', admin: true }),
                 trivialdb.db('model_test').store('test3', { name: 'foo 2', admin: false, foo: 3 }),
@@ -64,12 +64,7 @@ describe('Models', function()
                     trivialdb.db('nested_test_model').store({ name: 'nt1', test: { foo: "Bar!", bar: 3 } }),
                     trivialdb.db('nested_test_model').store({ name: 'nt2', test: { foo: "apples"} })
                 ]);
-            })
-            .then(function()
-            {
-                done();
             });
-
     });
 
     describe('Model Instance', function()
@@ -82,78 +77,68 @@ describe('Models', function()
             assert.deepEqual(JSON.parse(testJSON), { name: 'test', admin: false });
         });
 
-        it('can save new instances', function(done)
+        it('can save new instances', function()
         {
             var test = new TestModel({ name: 'test' });
 
-            test.save().then(function(test)
+            return test.save().then(function(test)
             {
                 // Ensure the document is saved in the db correctly.
-                trivialdb.db('model_test').get(test.id).then(function(doc)
+                return trivialdb.db('model_test').get(test.id).then(function(doc)
                 {
                     assert.deepEqual(doc, { id: test.id, name: 'test' });
-                    done();
                 });
             });
         });
 
-        it('can update existing instances', function(done)
+        it('can update existing instances', function()
         {
-            TestModel.get('test1').then(function(test)
+            return TestModel.get('test1').then(function(test)
             {
                 test.admin = true;
-                test.save().then(function()
+                return test.save().then(function()
                 {
                     // Ensure the document is saved in the db correctly.
-                    trivialdb.db('model_test').get(test.id).then(function(doc)
+                    return trivialdb.db('model_test').get(test.id).then(function(doc)
                     {
                         assert.deepEqual(doc, { id: test.id, name: 'foobar', admin: true });
-                        done();
                     });
                 });
             });
         });
 
-        it('validated before it saves', function(done)
+        it('validated before it saves', function()
         {
-            TestModel.get('test1').then(function(test)
+            return TestModel.get('test1').then(function(test)
             {
                 test.admin = 'true';
-                test.save().then(function()
+                return test.save().then(function()
                 {
                     assert(false, "Did not throw an error.");
-                    done();
                 })
-                .catch(errors.ValidationError, function()
-                {
-                    done();
-                });
+                .catch(errors.ValidationError, function() {});
             });
         });
 
-        it('can validate models without saving', function(done)
+        it('can validate models without saving', function()
         {
-            TestModel.get('test1').then(function(test)
+            return TestModel.get('test1').then(function(test)
             {
                 test.admin = 'true';
-                test.validate()
+                return test.validate()
                     .then(function()
                     {
                         assert(false, "Did not throw an error.");
-                        done();
                     })
-                    .catch(errors.ValidationError, function()
-                    {
-                        done();
-                    });
+                    .catch(errors.ValidationError, function() {});
             });
         });
 
-        it('can remove models', function(done)
+        it('can remove models', function()
         {
-            TestModel.get('test1').then(function(test)
+            return TestModel.get('test1').then(function(test)
             {
-                test.remove()
+                return test.remove()
                     .then(function()
                     {
                         return TestModel.get('test1');
@@ -161,18 +146,14 @@ describe('Models', function()
                     .then(function()
                     {
                         assert(false, "Did not throw an error.");
-                        done();
                     })
-                    .catch(errors.DocumentNotFound, function()
-                    {
-                        done();
-                    });
+                    .catch(errors.DocumentNotFound, function() {});
             });
         });
 
-        it('can force a sync', function(done)
+        it('can force a sync', function()
         {
-            TestModel.get('test1').then(function(test)
+            return TestModel.get('test1').then(function(test)
             {
                 assert.equal(test.admin, false);
 
@@ -180,23 +161,22 @@ describe('Models', function()
 
                 assert.equal(test.$dirty, true);
 
-                trivialdb.db('model_test').merge('test1', { admin: true })
+                return trivialdb.db('model_test').merge('test1', { admin: true })
                     .then(function()
                     {
-                        test.sync(true)
+                        return test.sync(true)
                             .then(function()
                             {
                                 assert.equal(test.admin, true);
                                 assert.equal(test.foo, undefined);
-                                done();
                             });
                     });
             });
         });
 
-        it('can specify a primary key', function(done)
+        it('can specify a primary key', function()
         {
-            PKTestModel.get('foobar')
+            return PKTestModel.get('foobar')
                 .then(function(test)
                 {
                     assert(test.id === test.name, "The 'id' property does not point to the correct field.");
@@ -210,23 +190,21 @@ describe('Models', function()
                             assert(test2.id === test2.name, "The 'id' property does not point to the correct field.");
                             assert(test2.$$values.id === undefined, "The model has an 'id' property in $$values.");
                         });
-                })
-                .then(done, done);
+                });
         });
 
-        it('correctly handles Date objects', function(done)
+        it('correctly handles Date objects', function()
         {
-            new DateTestModel({ name: "FredGeorge" }).save()
+            return new DateTestModel({ name: "FredGeorge" }).save()
                 .then(function(test)
                 {
                     assert(_.isDate(test.created));
-                })
-                .then(done, done);
+                });
         });
 
-        it('supports nested schemas', function(done)
+        it('supports nested schemas', function()
         {
-            NestedTestModel.get('nt1')
+            return NestedTestModel.get('nt1')
                 .then(function(model)
                 {
                     assert.equal(model.test.foo, "Bar!");
@@ -238,192 +216,152 @@ describe('Models', function()
                         {
                             assert.equal(model.test.bar, 5);
                         });
-                })
-                .then(done, done);
+                });
         });
     });
 
     describe('Model API', function()
     {
-        it('can retrieve model instances by id', function(done)
+        it('can retrieve model instances by id', function()
         {
-            TestModel.get('test1').then(function(test)
+            return TestModel.get('test1').then(function(test)
             {
                 assert.deepEqual(test.$$values, { id: 'test1', name: 'foobar', admin: false });
-                done();
             });
         });
 
-        it('returns a DocumentNotFoundError when attempting to retrieve an non-existent id', function(done)
+        it('returns a DocumentNotFoundError when attempting to retrieve an non-existent id', function()
         {
-            TestModel.get('does-not-exist')
+            return TestModel.get('does-not-exist')
                 .then(function()
                 {
                     assert(false, "Did not throw an error.");
-                    done();
                 })
-                .catch(errors.DocumentNotFound, function()
-                {
-                    done();
-                });
+                .catch(errors.DocumentNotFound, function() {});
         });
 
-        it('can retrieve all models', function(done)
+        it('can retrieve all models', function()
         {
-            TestModel.all()
+            return TestModel.all()
                 .then(function(allModels)
                 {
                     assert.equal(allModels.length, 5);
-                })
-                .then(done, done);
+                });
         });
 
-        it('can filter all models down to a subset', function(done)
+        it('can filter all models down to a subset', function()
         {
-            TestModel.filter({ admin: true })
+            return TestModel.filter({ admin: true })
                 .then(function(filtered)
                 {
                     assert.equal(filtered.length, 2);
-                    done()
                 });
         });
 
         describe('Remove', function()
         {
-            it('can remove model instances by id', function(done)
+            it('can remove model instances by id', function()
             {
-                TestModel.remove('test2')
+                return TestModel.remove('test2')
                     .then(function()
                     {
-                        TestModel.get('test2')
+                        return TestModel.get('test2')
                             .then(function()
                             {
                                 assert(false, "Did not throw an error.");
-                                done();
                             })
-                            .catch(errors.DocumentNotFound, function()
-                            {
-                                done();
-                            });
+                            .catch(errors.DocumentNotFound, function() {});
                     });
             });
 
-            it('can remove model instances by a filter', function(done)
+            it('can remove model instances by a filter', function()
             {
-                TestModel.remove({ admin: true })
+                return TestModel.remove({ admin: true })
                     .then(function()
                     {
-                        TestModel.get('test2')
+                        return TestModel.get('test2')
                             .then(function()
                             {
                                 assert(false, "Did not throw an error.");
-                                done();
                             })
-                            .catch(errors.DocumentNotFound, function()
-                            {
-                                done();
-                            });
+                            .catch(errors.DocumentNotFound, function() {});
                     });
             });
 
-            it('can remove all instances', function(done)
+            it('can remove all instances', function()
             {
-                TestModel.removeAll()
+                return TestModel.removeAll()
                     .then(function()
                     {
-                        TestModel.get('test4')
+                        return TestModel.get('test4')
                             .then(function()
                             {
                                 assert(false, "Did not throw an error.");
-                                done();
                             })
-                            .catch(errors.DocumentNotFound, function()
-                            {
-                                done();
-                            });
+                            .catch(errors.DocumentNotFound, function() {});
                     });
             });
         });
 
         describe('Validation', function()
         {
-            it('validates a correct instance', function(done)
+            it('validates a correct instance', function()
             {
-                TestModel.get('test1').then(function(test)
+                return TestModel.get('test1').then(function(test)
                 {
                     test.admin = true;
                     test.choice = 'bar';
                     test.toppings = ['cheese', 'mushrooms'];
-                    test.validate()
-                        .then(function()
-                        {
-                            done();
-                        })
-                        .catch(errors.ValidationError, function(error)
-                        {
-                            done(error);
-                        });
+                    return test.validate();
                 });
             });
 
-            it('fails to validate when missing a required field', function(done)
+            it('fails to validate when missing a required field', function()
             {
-                TestModel.get('test1').then(function(test)
+                return TestModel.get('test1').then(function(test)
                 {
                     test.admin = null;
-                    test.validate()
+                    return test.validate()
                         .then(function()
                         {
                             assert(false, "Did not throw an error.");
-                            done();
                         })
-                        .catch(errors.ValidationError, function()
-                        {
-                            done();
-                        });
+                        .catch(errors.ValidationError, function() {});
                 });
             });
 
-            it('fails to validate an incorrect type', function(done)
+            it('fails to validate an incorrect type', function()
             {
-                TestModel.get('test1').then(function(test)
+                return TestModel.get('test1').then(function(test)
                 {
                     test.admin = 3;
-                    test.validate()
+                    return test.validate()
                         .then(function()
                         {
                             assert(false, "Did not throw an error.");
-                            done();
                         })
-                        .catch(errors.ValidationError, function()
-                        {
-                            done();
-                        });
+                        .catch(errors.ValidationError, function() {});
                 });
             });
 
-            it('fails to validate an invalid choice', function(done)
+            it('fails to validate an invalid choice', function()
             {
-                TestModel.get('test1').then(function(test)
+                return TestModel.get('test1').then(function(test)
                 {
                     test.choice = 'baz';
                     test.toppings = ['cheese', 'pineapple'];
-                    test.validate()
+                    return test.validate()
                         .then(function()
                         {
                             assert(false, "Did not throw an error.");
-                            done();
                         })
-                        .catch(errors.ValidationError, function()
-                        {
-                            done();
-                        });
+                        .catch(errors.ValidationError, function() {});
                 });
             });
 
-            it('fails to validate an incorrect type on a nested field', function(done)
+            it('fails to validate an incorrect type on a nested field', function()
             {
-                NestedTestModel.get('nt2')
+                return NestedTestModel.get('nt2')
                     .then(function(model)
                     {
                         assert.equal(model.test.foo, "apples");
@@ -433,12 +371,8 @@ describe('Models', function()
                             .then(function()
                             {
                                 assert(false, "Did not throw an error.");
-                                done();
                             })
-                            .catch(errors.ValidationError, function()
-                            {
-                                done();
-                            });
+                            .catch(errors.ValidationError, function() {});
                     });
             });
         });
