@@ -50,8 +50,8 @@ directly into TrivialDB. Here's the current feature list:
 * Simple model definitions
 * Models serialize as JSON objects
 * Get & Filter functions that return model instances
-* Automatic syncing of database changes to Model instances
 * Manual syncing of Model instances with the database
+* Relationship support
 
 Don't worry, you are not required to use the Model API, or even know it's there.
 
@@ -150,6 +150,35 @@ Additionally, when converting to JSON, the primary key will be duplicated in bot
 specified as the primary key. This is by design; you can always refer to the `id` property as the identifier of the
 object, regardless of if you're using a primary key. The small duplication is considered acceptable for the convenience.
 
+#### Defining relations via the schema
+
+TrivialDB allows you to define relations either through the schema, or through convenience functions on the `Model` 
+class. Defining the via the schema is relatively easy:
+
+```javascript
+// Define an in-memory only model
+var Session = trivialdb.defineModel('sessions', {
+    userID: { type: String, required: true }
+}, { writeToDisk: false });
+
+// Define a user model
+var User = trivialdb.defineModel('users', {
+    name: { type: String, required: true },
+    age: Number,
+    admin: { type: Boolean, required: true, default: false },
+    $relations: {
+        session: {
+            model: Session,
+            type: 'hasOne',
+            thisKey: 'id',
+            otherKey: 'id'
+        }
+    }
+});
+```
+
+Simply create a `$relations` key on your schema, and it's keys will be the keys added to your model when you populate.
+
 #### Creating a Model
 
 To create a model, you simply create a new instance of the return value of `defineModel`, optionally passing in an
@@ -177,7 +206,7 @@ user.save();
 
 #### Validating a Model
 
-* `model.validate()` - Returns a promise that either resolves, or rejects with a `ValidationError`.
+* `modelInst.validate()` - Returns a promise that either resolves, or rejects with a `ValidationError`.
 
 All model instances have a `validate` function, which you can use to check to make sure the model is valid. When there
 is a validation error, you will get a `ValidationError` object with a `key` property that indicates the key that failed
@@ -215,7 +244,7 @@ user.validate()
 
 #### Saving a Model
 
-* `model.save(skipValidation)` - Returns a promise that either resolves, or rejects with an error.
+* `modelInst.save(skipValidation)` - Returns a promise that either resolves, or rejects with an error.
 
 Saving a model is as simple as calling `save`. It first calls `validate`, which means that it may throw a
 `ValidationError`.
@@ -237,7 +266,7 @@ user.save()
 
 #### Removing a Model
 
-* `model.remove()` - Returns a promise that always resolves.
+* `modelInst.remove()` - Returns a promise that always resolves.
 
 Removing a model is as simple as calling `remove`. The object is removed from the database, and it's values are emptied.
 
@@ -263,20 +292,9 @@ User.remove({ admin: true });
 
 This is provided as a convenience. It removes all instances of a model.
 
-#### Syncing
+#### Manual Syncing
 
-Normally, in an ORM, if you either create a new model instance, or get a model instance somehow, and something else
-changes the database, your model instance is out of date and doesn't get those changes. However, because of the nature
-of TrivialDB, it was very easy to make the models smart enough to update themselves whenever something changes in the
-database.
-
-That being said, there is an issue of how do we merge your unsaved changes when something else has updated the database?
-The design we've chosen is that whenever you model is dirty (`model.$dirty` is true), we ignore the `sync` event. You
-can still manually sync the object.
-
-##### Manual Syncing
-
-* `model.sync(force)` - returns a promise that resolves once the sync has completed.
+* `modelInst.sync(force)` - returns a promise that resolves once the sync has completed.
 
 If you want to sync your model instance (because you manually updated the database, for example), you can simply call
 `sync`. However, if your model is dirty, you will need to force the sync by passing `true` to the `sync` function.
@@ -300,7 +318,7 @@ Keep in mind, when you force a sync, _all changes to the model instance will be 
 
 #### Getting a Model by ID
 
-* `Model.get(modelID)` - returns a promise that either resolves with a model instance, ore rejects with a
+* `Model.get(modelID, options)` - returns a promise that either resolves with a model instance, ore rejects with a
 `DocumentNotFound` error.
 
 You can easily get model instances by id. Simply call `Model.get` and pass in the id you're looking for. If the id does
@@ -339,7 +357,7 @@ User.all()
 
 #### Filtering models
 
-* `Model.filter(filter)` - returns a promise that resolves to a list, or an error.
+* `Model.filter(filter, options)` - returns a promise that resolves to a list, or an error.
 
 Instead, if you want to get a list of possible values, you should use `filter`. Just like the Database API function of
 the same name, we support filter functions, `_.pluck` and `_.where` style filters. The results are _always_ as list, so
@@ -351,6 +369,94 @@ User.filter({ admin: true })
     .then(function(admins)
     {
         // Work with the list of admins.
+    });
+```
+
+#### Defining Relationships between models
+
+* `Model.hasOne(otherModel, relationName, thisKey, otherKey, options)` - defines a "many to one" relation between two 
+models. The foreign key is `thisKey` and will be stored on this model.
+* `Model.hasMany(otherModel, relationName, thisKey, otherKey, options)` - define a "one to Many" relation between two 
+models where the reciprocal relation is a `hasOne`. The foreign key is `otherKey` and will be stored in `otherModel`.
+
+In TrivialDB, a relationship is always between one model and another. There are two types of relationships: `hasOne` and
+`hasMany`. These two relationships can be combined to create the most common relational constraints I've seen used: 
+"one to one", "one to many", "many to one", "many to many".
+
+```javascript
+var Author = trivialdb.defineModel('authors', {
+    name: String,
+    dob: Date,
+    accountName: String
+}, { writeToDisk: false });
+
+var Account = trivialdb.defineModel('accounts', {
+    username: String,
+    email: String,
+    authorID: String,
+    created: { type: Date, default: Date.now() }
+}, { writeToDisk: false, pk: 'username' });
+
+// This defines a 'one to one' relationship between Account and Author
+Account.hasOne(Author, 'author', 'authorID', 'id');
+Author.hasOne(Account, 'account', 'accountName', 'username');
+
+var Post = trivialdb.defineModel('posts', {
+    title: String,
+    content: String,
+    authorID: String,
+    created: { type: Date, default: Date.now() }
+}, { writeToDisk: false });
+
+// Posts have a Many to One relationship with Author.
+Post.hasOne(Author, 'author', 'authorID', 'id');
+Author.hasMany(Post, 'posts', 'id', 'authorID');
+
+```
+
+It is not required to define the reciprocal relation; that is up to how you want to be able to query the data.
+
+#### Populating relationships
+
+* `modelInst.populate()` - returns a promise that resolves to the model instance once the population has completed.
+
+Defining relationships is only useful if you can then turn around and retrieve the related models. All model instances
+have a `populate` function, which will retrieve all related models, and populate the appropriate values. As you would
+expect, `hasOne` relationships resolve to a single model, while `hasMany` resolve to a list of models.
+
+The `Model.get` and `Model.filter` calls have also received options for populating.
+
+```javascript
+Account.get('morgul', { populate: true })
+    .then(function(account)
+    {
+        return account.author.populate()
+            .then(function(author)
+            {
+                console.log('Populated Author:\n%s', author);
+            });
+    });
+```
+
+It should be noted that this is a potentially "slow" operation, and is the equivalent of doing multiple `Model.get` and 
+`Model.filter` calls. (It is, like everything in TrivialDB, actually incredibly fast objectively.)
+
+##### De-populating a model
+
+* `modelInst.depopulate()` - returns a promise that resolves to the model instance once the depopulate has completed.
+
+Sometimes, it's useful to strip the populated models off the original model. This is a very fast operation, and can be 
+called with impunity, regardless of if the model instance was populated or not.
+
+```javascript
+return Account.get('morgul', { populate: true })
+    .then(function(account)
+    {
+        return account.depopulate()
+            .then(function(account)
+            {
+                console.log('Depopulated Account:\n%s', account);
+            });
     });
 ```
 
