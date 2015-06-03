@@ -15,7 +15,7 @@ var errors = require('../lib/errors');
 describe('Models', function()
 {
 
-    var TestModel, DateTestModel, PKTestModel, NestedTestModel;
+    var TestModel, DateTestModel, PKTestModel, NestedTestModel, RelationsTestModel, RelationsManyModel;
     beforeEach(function()
     {
         TestModel = trivialdb.defineModel('model_test', {
@@ -44,6 +44,16 @@ describe('Models', function()
             }
         }, { writeToDisk: false, pk: 'name' });
 
+        RelationsTestModel = trivialdb.defineModel('relations_test_model', {
+            name: String,
+            testID: String
+        }, { writeToDisk: false, pk: 'name' });
+
+        RelationsManyModel = trivialdb.defineModel('relations_many_model', {
+            name: String,
+            modelIDs: Array
+        }, { writeToDisk: false, pk: 'name' });
+
         // Populate the database
         return trivialdb.Promise.all([
                 trivialdb.db('model_test').store('test1', { name: 'foobar', admin: false }),
@@ -63,6 +73,15 @@ describe('Models', function()
                 return trivialdb.Promise.all([
                     trivialdb.db('nested_test_model').store({ name: 'nt1', test: { foo: "Bar!", bar: 3 } }),
                     trivialdb.db('nested_test_model').store({ name: 'nt2', test: { foo: "apples"} })
+                ]);
+            })
+            .then(function()
+            {
+                return trivialdb.Promise.all([
+                    trivialdb.db('relations_test_model').store({ name: 'rtm1', testID: 'foobar', manyID: 'rmm1' }),
+                    trivialdb.db('relations_test_model').store({ name: 'rtm2', testID: 'barbaz', manyID: 'rmm1' }),
+                    trivialdb.db('relations_test_model').store({ name: 'rtm3', testID: 'barbaz' }),
+                    trivialdb.db('relations_many_model').store({ name: 'rmm1' })
                 ]);
             });
     });
@@ -379,54 +398,152 @@ describe('Models', function()
 
         describe('Relations', function()
         {
-            xit('supports one-to-one relationships', function(done)
+            it('supports defining hasOne relationships', function()
             {
+                RelationsTestModel.hasOne(TestModel, 'test', 'testID', 'id');
 
+                assert.notEqual(RelationsTestModel.schema.$relations.test, undefined);
+                assert.equal(RelationsTestModel.schema.$relations.test.type, 'hasOne');
             });
 
-            xit('supports one-to-many relationships', function(done)
+            it('supports defining hasMany relationships', function()
             {
+                RelationsManyModel.hasMany(RelationsTestModel, 'rel', 'modelIDs', 'name');
 
+                assert.notEqual(RelationsManyModel.schema.$relations.rel, undefined);
+                assert.equal(RelationsManyModel.schema.$relations.rel.type, 'hasMany');
             });
 
-            xit('supports many-to-one relationships', function(done)
+            it('populates relationships', function(done)
             {
+                // Define relationships
+                RelationsTestModel.hasOne(TestModel, 'test', 'testID', 'name');
+                RelationsManyModel.hasMany(RelationsTestModel, 'rel', 'name', 'manyID');
 
+                // Test hasOne
+                RelationsTestModel.get('rtm1', { populate: true })
+                    .then(function(model)
+                    {
+                        assert.equal(model.name, 'rtm1');
+                        assert.equal(model.test.name, 'foobar');
+
+                        // Test hasMany
+                        RelationsManyModel.get('rmm1', { populate: true })
+                            .then(function(model)
+                            {
+                                assert.equal(model.name, 'rmm1');
+                                assert.equal(model.rel[0].name, 'rtm1');
+                                done();
+                            });
+                    });
             });
 
-            xit('supports many-to-many relationships', function(done)
+            it('depopulates relationships', function(done)
             {
+                // Define relationships
+                RelationsTestModel.hasOne(TestModel, 'test', 'testID', 'name');
 
+                // Test hasOne
+                RelationsTestModel.get('rtm1', { populate: true })
+                    .then(function(model)
+                    {
+                        assert.equal(model.name, 'rtm1');
+                        assert.equal(model.test.name, 'foobar');
+
+                        model.depopulate()
+                            .then(function(model)
+                            {
+                                assert.equal(model.test, undefined);
+                                done();
+                            });
+                    });
             });
 
-            xit('populates relationships', function(done)
+            it('includes populated models in `toJSON()`', function(done)
             {
+                // Define relationships
+                RelationsTestModel.hasOne(TestModel, 'test', 'testID', 'name');
 
+                // Test hasOne
+                RelationsTestModel.get('rtm1', { populate: true })
+                    .then(function(model)
+                    {
+                        assert.equal(model.name, 'rtm1');
+                        assert.equal(model.test.name, 'foobar');
+
+                        var json = model.toJSON();
+                        assert.equal(json.test.name, 'foobar');
+                        done();
+                    });
             });
 
-            xit('depopulates relationships', function(done)
+            it('supports hiding the key of relationships from `toJSON()`', function(done)
             {
+                // Define relationships
+                RelationsTestModel.hasOne(TestModel, 'test', 'testID', 'name');
 
+                // Test hasOne
+                RelationsTestModel.get('rtm1', { populate: true })
+                    .then(function(model)
+                    {
+                        assert.equal(model.name, 'rtm1');
+                        assert.equal(model.test.name, 'foobar');
+
+                        var json = model.toJSON();
+                        assert.equal(json.$relationships, undefined);
+                        done();
+                    });
             });
 
-            xit('includes populated models in `toJSON()`', function(done)
+            it('correctly saves changes when `hasOne` relation field is assigned to', function(done)
             {
+                // Define relationships
+                RelationsTestModel.hasOne(TestModel, 'test', 'testID', 'name');
 
+                // Test hasOne
+                RelationsTestModel.get('rtm1', { populate: true })
+                    .then(function(model)
+                    {
+                        assert.equal(model.test.name, 'foobar');
+
+                        TestModel.get('test2')
+                            .then(function(testModel)
+                            {
+                                model.test = testModel;
+                                model.save()
+                                    .then(function(model)
+                                    {
+                                        assert.equal(model.test.name, 'barbaz');
+                                        done();
+                                    });
+                            });
+                    });
             });
 
-            xit('supports hiding the key of relationships from `toJSON()`', function(done)
+            it('correctly saves changes when `hasMany` relation field is assigned to', function(done)
             {
+                // Define relationships
+                RelationsManyModel.hasMany(RelationsTestModel, 'rel', 'name', 'manyID');
 
-            });
+                // Test hasMany
+                RelationsManyModel.get('rmm1', { populate: true })
+                    .then(function(model)
+                    {
+                        assert.equal(model.rel[0].name, 'rtm1');
 
-            xit('correctly saves changes when `hasOne` relation field is assigned to', function(done)
-            {
+                        RelationsTestModel.get('rtm3')
+                            .then(function(testModel)
+                            {
+                                model.rel.push(testModel);
 
-            });
-
-            xit('correctly saves changes when `hasMany` relation field is assigned to', function(done)
-            {
-
+                                model.save()
+                                    .then(function(model)
+                                    {
+                                        assert.equal(model.rel[2].name, 'rtm3');
+                                        done();
+                                    });
+                            });
+                    });
             });
         });
     });
