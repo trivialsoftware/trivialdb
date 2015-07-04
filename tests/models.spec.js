@@ -96,6 +96,16 @@ describe('Models', function()
             assert.deepEqual(JSON.parse(testJSON), { name: 'test', admin: false });
         });
 
+        it('supports nested fields when converting to json', function()
+        {
+            return NestedTestModel.get('nt1')
+                .then(function(model)
+                {
+                    model = model.toJSON();
+                    assert.equal(model.test.foo, "Bar!");
+                });
+        });
+
         it('can save new instances', function()
         {
             var test = new TestModel({ name: 'test' });
