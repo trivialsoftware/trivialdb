@@ -1,6 +1,6 @@
 {
   "name": "trivialdb",
-  "version": "1.4.0-beta.4",
+  "version": "1.4.0",
   "description": "A lightweight key/value json storage with persistence.",
   "main": "trivialdb.js",
   "scripts": {
