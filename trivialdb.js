@@ -4,10 +4,7 @@
 // @module trivialdb.js
 //----------------------------------------------------------------------------------------------------------------------
 
-var Promise = require('bluebird');
-
-var JDB = require('./lib/tdb');
-var models = require('./lib/models');
+var TDB = require('./lib/tdb');
 var errors = require('./lib/errors');
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -21,16 +18,13 @@ module.exports = {
 
         if(!db)
         {
-            db = new JDB(name, options);
+            db = new TDB(name, options);
             dbInstances[name] = db;
         } // end if
 
         return db;
     },
-    defineModel: models.defineModel,
-    JDB: JDB,
-    Model: models.Model,
-    Promise: Promise,
+    TDB: TDB,
     errors: errors
 }; // end exports
 
