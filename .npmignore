@@ -8,5 +8,7 @@ node_modules
 # Jetbrains IDE project files
 .idea
 
-# Build files
-dist
+# Ignore source files
+trivialdb.js
+lib
+examples
