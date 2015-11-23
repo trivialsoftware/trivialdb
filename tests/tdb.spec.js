@@ -9,70 +9,93 @@ var path = require('path');
 var assert = require("assert");
 var os = require('os');
 
+var _ = require('lodash');
 var Promise = require('bluebird');
 
-var JDB = require('../lib/tdb');
+var TDB = require('../lib/tdb');
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-describe('JDB Instance', function()
+describe('TDB Instance', function()
 {
     var testDB = '{"cfvtjn3dzYLJzbbfKCcZsrTXDJw=": {"name":"Captain Hammer","role":"hero"},'
     + '"1lT/bTHNj2G3abAf+OsPNaV2Sgw=":{"name":"Dr. Horrible","role": "villian"}}';
 
     var rootPath = os.tmpdir();
 
-    fs.writeFileSync(path.resolve(rootPath, 'jdb_test.json'), testDB);
-
     var db;
     beforeEach(function()
     {
-        db = new JDB("test", { writeToDisk: false, loadFromDisk: false });
+        db = new TDB("test", { writeToDisk: false, loadFromDisk: false });
+        fs.writeFileSync(path.resolve(rootPath, 'tdb_test.json'), testDB);
     });
 
     afterEach(function()
     {
-        var tempDBPath = path.join(rootPath, 'test.json');
-        if(fs.existsSync(tempDBPath))
-        fs.unlinkSync(tempDBPath);
+        // Clean the temp directory.
+        var files = fs.readdirSync(rootPath);
+        files.forEach((file) =>
+        {
+            try { fs.unlinkSync(path.join(rootPath, file)); }
+            catch(ex){}
+        });
     });
 
     it('creates a new database instance', function()
     {
-        assert(db instanceof JDB, "db is not an instance of JDB");
+        assert(db instanceof TDB, "db is not an instance of TDB");
         assert.equal(db.name, "test");
     });
 
     it('loads a database instance if one exists', function()
     {
-        db = new JDB("jdb_test", { writeToDisk: false, rootPath: rootPath });
-        assert.deepEqual(db.values, JSON.parse(testDB));
+        db = new TDB("tdb_test", { writeToDisk: false, rootPath: rootPath });
+        return db.loading.then(() =>
+        {
+            assert.deepEqual(db.values, JSON.parse(testDB));
+        });
     });
 
     it('writes changes to disk as a json file', function(done)
     {
-        var tDB = JSON.parse(testDB);
+        var testDBObj = JSON.parse(testDB);
 
-        db = new JDB("test", { rootPath: rootPath });
-        db.values = tDB;
+        db = new TDB("test_write", { rootPath: rootPath });
+        db.values = testDBObj;
         db.sync()
             .then(function()
             {
-                var dbFile = fs.readFileSync(path.resolve(rootPath, 'test.json')).toString();
+                // This both tests that it writes, and that the json files are following the correct naming convention.
+                var dbFile = fs.readFileSync(path.resolve(rootPath, 'test_write.json')).toString();
 
-                assert.deepEqual(JSON.parse(dbFile), tDB);
+                assert.deepEqual(JSON.parse(dbFile), testDBObj);
                 done();
             });
+    });
+
+    it('allows reloading of a file from disk', function()
+    {
+        db = new TDB("reload_test", { writeToDisk: false, loadFromDisk: true, rootPath: rootPath });
+        return db.loading.then(() =>
+        {
+            assert(_.isEmpty(db.values));
+
+            fs.writeFileSync(path.join(rootPath, 'reload_test.json'), JSON.stringify(testDB));
+            return db.reload().then(() =>
+            {
+                assert.deepEqual(db.values, testDB);
+            });
+        });
     });
 
     describe("Options", function()
     {
         it('writeToDisk can be used to disable writing to disk', function(done)
         {
-            var tDB = JSON.parse(testDB);
+            var testDBObj = JSON.parse(testDB);
 
-            db = new JDB("test", { writeToDisk: false, rootPath: rootPath });
-            db.values = tDB;
+            db = new TDB("test", { writeToDisk: false, rootPath: rootPath });
+            db.values = testDBObj;
             db.sync()
                 .then(function()
                 {
@@ -83,13 +106,13 @@ describe('JDB Instance', function()
 
         it('loadFromDisk can be used to disable loading from disk on startup', function()
         {
-            db = new JDB("jdb_test", { loadFromDisk: false, rootPath: rootPath });
+            db = new TDB("tdb_test", { loadFromDisk: false, rootPath: rootPath });
             assert(db.values !== JSON.parse(testDB));
         });
 
         it('rootPath can be used to control where database files are written', function(done)
         {
-            db = new JDB("test", { rootPath: rootPath });
+            db = new TDB("test", { rootPath: rootPath });
             db.sync()
                 .then(function()
                 {
@@ -100,7 +123,7 @@ describe('JDB Instance', function()
 
         it('writeDelay can be used to control the minimum period between writes', function(done)
         {
-            db = new JDB("test", { rootPath: rootPath, writeDelay: 50 });
+            db = new TDB("test", { rootPath: rootPath, writeDelay: 50 });
             db.store('test-key', { test: true });
 
             // Check before the write should have hit
@@ -120,7 +143,7 @@ describe('JDB Instance', function()
 
         it('prettyPrint can be used to control whether or not the json on disk is persisted in compact form', function(done)
         {
-            db = new JDB("test", { rootPath: rootPath, prettyPrint: false });
+            db = new TDB("test", { rootPath: rootPath, prettyPrint: false });
             db.store('test-key', { test: true });
 
             setTimeout(function()
@@ -133,7 +156,7 @@ describe('JDB Instance', function()
 
         it('pk can be used to specify a field of the model to use as the id', function(done)
         {
-            db = new JDB("test", { writeToDisk: false, pk: 'name' });
+            db = new TDB("test", { writeToDisk: false, pk: 'name' });
             db.store({ name: 'bob', admin: false })
                 .then(function()
                 {
@@ -154,7 +177,7 @@ describe('JDB Instance', function()
                     .replace(/-+$/, '');            // Trim - from end of text
             } // end slugify
 
-            db = new JDB("articles", { writeToDisk: false, idFunc: slugify });
+            db = new TDB("articles", { writeToDisk: false, idFunc: slugify });
             db.store({ name: "TrivialDB: now with id generation functions!", body: "Read the title, dude." })
                 .then(function()
                 {
@@ -339,7 +362,7 @@ describe('JDB Instance', function()
     {
         it('triggers a write to disk when called', function(done)
         {
-            db = new JDB("test", { rootPath: rootPath });
+            db = new TDB("test", { rootPath: rootPath });
             db._writeToDisk = function()
             {
                 done();
@@ -351,7 +374,7 @@ describe('JDB Instance', function()
 
         it('calls the passed in callback when the write is complete', function()
         {
-            db = new JDB("test", { rootPath: rootPath });
+            db = new TDB("test", { rootPath: rootPath });
             db.sync(function()
             {
                 assert(fs.existsSync(db.path), "Database did not write out to the expected location.");
