@@ -13,10 +13,11 @@ var _ = require('lodash');
 var Promise = require('bluebird');
 
 var TDB = require('../lib/tdb');
+var errors = require('../lib/errors');
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-describe('TDB Instance', function()
+describe('TDB Instance', () =>
 {
     var testDB = '{"cfvtjn3dzYLJzbbfKCcZsrTXDJw=": {"name":"Captain Hammer","role":"hero"},'
     + '"1lT/bTHNj2G3abAf+OsPNaV2Sgw=":{"name":"Dr. Horrible","role": "villian"}}';
@@ -24,13 +25,13 @@ describe('TDB Instance', function()
     var rootPath = os.tmpdir();
 
     var db;
-    beforeEach(function()
+    beforeEach(() =>
     {
         db = new TDB("test", { writeToDisk: false, loadFromDisk: false });
         fs.writeFileSync(path.resolve(rootPath, 'tdb_test.json'), testDB);
     });
 
-    afterEach(function()
+    afterEach(() =>
     {
         // Clean the temp directory.
         var files = fs.readdirSync(rootPath);
@@ -41,13 +42,13 @@ describe('TDB Instance', function()
         });
     });
 
-    it('creates a new database instance', function()
+    it('creates a new database instance', () =>
     {
         assert(db instanceof TDB, "db is not an instance of TDB");
         assert.equal(db.name, "test");
     });
 
-    it('loads a database instance if one exists', function()
+    it('loads a database instance if one exists', () =>
     {
         db = new TDB("tdb_test", { writeToDisk: false, rootPath: rootPath });
         return db.loading.then(() =>
@@ -56,24 +57,23 @@ describe('TDB Instance', function()
         });
     });
 
-    it('writes changes to disk as a json file', function(done)
+    it('writes changes to disk as a json file', () =>
     {
         var testDBObj = JSON.parse(testDB);
 
         db = new TDB("test_write", { rootPath: rootPath });
         db.values = testDBObj;
-        db.sync()
-            .then(function()
+        return db.sync()
+            .then(() =>
             {
                 // This both tests that it writes, and that the json files are following the correct naming convention.
                 var dbFile = fs.readFileSync(path.resolve(rootPath, 'test_write.json')).toString();
 
                 assert.deepEqual(JSON.parse(dbFile), testDBObj);
-                done();
             });
     });
 
-    it('allows reloading of a file from disk', function()
+    it('allows reloading of a file from disk', () =>
     {
         db = new TDB("reload_test", { writeToDisk: false, loadFromDisk: true, rootPath: rootPath });
         return db.loading.then(() =>
@@ -88,52 +88,50 @@ describe('TDB Instance', function()
         });
     });
 
-    describe("Options", function()
+    describe("Options", () =>
     {
-        it('writeToDisk can be used to disable writing to disk', function(done)
+        it('writeToDisk can be used to disable writing to disk', () =>
         {
             var testDBObj = JSON.parse(testDB);
 
             db = new TDB("test", { writeToDisk: false, rootPath: rootPath });
             db.values = testDBObj;
-            db.sync()
-                .then(function()
+            return db.sync()
+                .then(() =>
                 {
                     assert(!fs.existsSync(db.path), "Database wrote out to disk.");
-                    done();
                 });
         });
 
-        it('loadFromDisk can be used to disable loading from disk on startup', function()
+        it('loadFromDisk can be used to disable loading from disk on startup', () =>
         {
             db = new TDB("tdb_test", { loadFromDisk: false, rootPath: rootPath });
             assert(db.values !== JSON.parse(testDB));
         });
 
-        it('rootPath can be used to control where database files are written', function(done)
+        it('rootPath can be used to control where database files are written', () =>
         {
             db = new TDB("test", { rootPath: rootPath });
-            db.sync()
-                .then(function()
+            return db.sync()
+                .then(() =>
                 {
                     assert(fs.existsSync(db.path), "Database did not write out to the expected location.");
-                    done();
                 });
         });
 
-        it('writeDelay can be used to control the minimum period between writes', function(done)
+        it('writeDelay can be used to control the minimum period between writes', (done) =>
         {
             db = new TDB("test", { rootPath: rootPath, writeDelay: 50 });
             db.store('test-key', { test: true });
 
             // Check before the write should have hit
-            setTimeout(function()
+            setTimeout(() =>
             {
                 assert(!fs.existsSync(db.path), "Database wrote out to disk.");
             }, 20);
 
             // Check after the write should have hit
-            setTimeout(function()
+            setTimeout(() =>
             {
                 var jsonStr = fs.readFileSync(db.path).toString();
                 assert.deepEqual(JSON.parse(jsonStr), {'test-key':{test:true}});
@@ -141,12 +139,12 @@ describe('TDB Instance', function()
             }, 60);
         });
 
-        it('prettyPrint can be used to control whether or not the json on disk is persisted in compact form', function(done)
+        it('prettyPrint can be used to control whether or not the json on disk is persisted in compact form', (done) =>
         {
             db = new TDB("test", { rootPath: rootPath, prettyPrint: false });
             db.store('test-key', { test: true });
 
-            setTimeout(function()
+            setTimeout(() =>
             {
                 var jsonStr = fs.readFileSync(db.path).toString();
                 assert.equal(jsonStr, '{"test-key":{"test":true}}');
@@ -154,18 +152,17 @@ describe('TDB Instance', function()
             }, 20);
         });
 
-        it('pk can be used to specify a field of the model to use as the id', function(done)
+        it('pk can be used to specify a field of the model to use as the id', () =>
         {
             db = new TDB("test", { writeToDisk: false, pk: 'name' });
-            db.store({ name: 'bob', admin: false })
-                .then(function()
+            return db.store({ name: 'bob', admin: false })
+                .then(() =>
                 {
                     assert.deepEqual(db.values, {'bob': { name: 'bob', admin: false }});
-                })
-                .then(done, done);
+                });
         });
 
-        it('idFunc can be used to specify the id generation function', function(done)
+        it('idFunc can be used to specify the id generation function', () =>
         {
             function slugify(article)
             {
@@ -178,117 +175,135 @@ describe('TDB Instance', function()
             } // end slugify
 
             db = new TDB("articles", { writeToDisk: false, idFunc: slugify });
-            db.store({ name: "TrivialDB: now with id generation functions!", body: "Read the title, dude." })
-                .then(function()
+            return db.store({ name: "TrivialDB: now with id generation functions!", body: "Read the title, dude." })
+                .then(() =>
                 {
                     assert.deepEqual(db.values, {"trivialdb-now-with-id-generation-functions":{"name":"TrivialDB: now with id generation functions!","body":"Read the title, dude."}});
-                })
-                .then(done, done);
+                });
         });
     });
 
-    describe("Storing Values", function()
+    describe("Storing Values", () =>
     {
-        it('stores a value under the specified key', function(done)
+        it('stores a value under the specified key', () =>
         {
-            db.store('test-key', { test: true })
-                .then(function()
+            return db.store('test-key', { test: true })
+                .then(() =>
                 {
                     assert('test-key' in db.values, "The key 'test-key' was not found.");
-                    done();
                 });
         });
 
-        it('autogenerates a key when none is specified', function(done)
+        it('autogenerates a key when none is specified', () =>
         {
-            db.store({ test: true })
-                .then(function(key)
+            return db.store({ test: true })
+                .then((key) =>
                 {
                     assert(key in db.values, "The key '" + key + "' was not found.");
-                    done();
                 });
         });
     });
 
-    describe("Retrieving Values", function()
+    describe("Retrieving Values", () =>
     {
-        it('returns the value when passing in an existing key', function(done)
+        it('`get()` returns the value when passing in an existing key', () =>
         {
             db.values['test-key'] = { test: true };
-            db.get('test-key')
-                .then(function(value)
-                {
-                    assert.deepEqual(value, { test: true });
-                    done();
-                });
+            var value = db.get('test-key');
+            assert.deepEqual(value, { test: true });
         });
 
-        it('returns undefined when passing in a nonexistent key', function(done)
+        it('`get()` returns undefined when passing in a nonexistent key', () =>
         {
-            db.get('does-not-exist-key')
-                .then(function(value)
+            var value = db.get('does-not-exist-key');
+            assert.equal(value, undefined);
+        });
+
+        it('`get()` returns a deeply cloned value', () =>
+        {
+            var testVal = { test: { foo: 123, nested: { bar: 123 } } };
+            db.values['test-key'] = testVal;
+            var value = db.get('test-key');
+
+            // Make sure the objects are not the same
+            assert(value !== testVal);
+
+            // Now, modify the value object
+            value.test.foo = 456;
+            value.test.foo2 = 456;
+            value.test.nested.bar = 456;
+
+            // Ensure those modifications have not propagated
+            assert.equal(testVal.test.foo, 123);
+            assert.equal(testVal.test.nested.bar, 123);
+            assert(testVal.test.foo2 == undefined);
+        });
+
+        it('`load()` returns a promise', () =>
+        {
+            db.values['test-key'] = { test: true };
+            var promise = db.load('test-key');
+            assert(_.isFunction(promise.then), "`load().then` is not a function!");
+        });
+
+        it("`load()` rejects with a 'DocumentNotFound' error on nonexistent keys", () =>
+        {
+            return db.load('does-not-exist')
+                .then(() =>
                 {
-                    assert.equal(value, undefined);
-                    done();
-                });
+                    assert(false, "Failed to throw error.");
+                })
+                .catch(errors.DocumentNotFound, () => {});
         });
     });
 
-    describe("Updating Values", function()
+    describe("Updating Values", () =>
     {
-        it('updates the value with the partial when an existing key is passed', function(done)
+        it('updates the value with the partial when an existing key is passed', () =>
         {
             db.values['test-key'] = { test: true };
-            db.merge('test-key', { other: 123 })
-                .then(function(newVal)
+            return db.merge('test-key', { other: 123 })
+                .then((newVal) =>
                 {
                     assert.deepEqual(newVal, { test: true, other: 123 });
-                    done();
                 });
         });
 
-        it('creates a new value of the partial when a nonexistent key is passed', function(done)
+        it('creates a new value of the partial when a nonexistent key is passed', () =>
         {
-            db.merge('test-key', { other: 123 })
-                .then(function()
+            return db.merge('test-key', { other: 123 })
+                .then(() =>
                 {
-                    db.get('test-key')
-                        .then(function(val)
-                        {
-                            assert.deepEqual(val, { other: 123 });
-                            done();
-                        });
+                    var val = db.get('test-key');
+                    assert.deepEqual(val, { other: 123 });
                 });
-
         });
 
-        it('updates deeply nested objects', function(done)
+        it('updates deeply nested objects', () =>
         {
             db.values['test-key'] = { test: true, nested: { subkey: { foo: "bar" }, other: 123 }};
-            db.merge('test-key', { nested: { subkey: { foo: "bleh" }}})
-                .then(function(newVal)
+            return db.merge('test-key', { nested: { subkey: { foo: "bleh" }}})
+                .then((newVal) =>
                 {
                     assert.deepEqual(newVal, { test: true, nested: { subkey: { foo: "bleh" }, other: 123 }});
-                    done();
                 });
 
         });
 
-        it('creates intermediate keys on deeply nested objects', function(done)
+        it('creates intermediate keys on deeply nested objects', () =>
         {
             db.values['test-key'] = { test: true };
-            db.merge('test-key', { nested: { subkey: { foo: "bleh" }}})
-                .then(function(newVal)
+            return db.merge('test-key', { nested: { subkey: { foo: "bleh" }}})
+                .then((newVal) =>
                 {
                     assert.deepEqual(newVal, { test: true, nested: { subkey: { foo: "bleh" }}});
-                    done();
                 });
         });
     });
 
-    describe("Filtering Values", function()
+    describe("Filtering Values", () =>
     {
-        it('filters the db using the filter function', function(done)
+        it('filters the db using the filter function', () =>
         {
             db.values = {
                 'some-guy': { age: 36, name: "Some Guy" },
@@ -297,17 +312,16 @@ describe('TDB Instance', function()
                 'additional-guy': { age: 11, name: "Additional Guy" }
             };
 
-            db.filter(function(value, key)
+            return db.filter((value, key) =>
             {
                 return value.age > 30;
-            }).then(function(ages)
+            }).then((ages) =>
             {
                 assert.deepEqual(ages, {'some-guy': { age: 36, name: "Some Guy" }, 'also-guy': { age: 32, name: "Also Guy" }});
-                done();
             });
         });
 
-        it('supports filter objects', function(done)
+        it('supports filter objects', () =>
         {
             db.values = {
                 'some-guy': { age: 36, name: "Some Guy" },
@@ -316,69 +330,90 @@ describe('TDB Instance', function()
                 'additional-guy': { age: 11, name: "Additional Guy" }
             };
 
-            db.filter({ age: 32 })
-                .then(function(ages)
+            return db.filter({ age: 32 })
+                .then((ages) =>
                 {
                     assert.deepEqual(ages, {'also-guy': { age: 32, name: "Also Guy" }});
-                    done();
                 });
         });
     });
 
-    describe("Remove Values", function()
+    describe("Remove Values", () =>
     {
-        it('removes values by id', function(done)
+        it('removes values by id', () =>
         {
             db.values = {
                 'some-guy': { age: 36, name: "Some Guy" },
                 'also-guy': { age: 32, name: "Also Guy" }
             };
 
-            db.remove('some-guy')
-                .then(function()
+            return db.remove('some-guy')
+                .then(() =>
                 {
                     assert.deepEqual(db.values, {'also-guy': { age: 32, name: "Also Guy" }});
-                    done();
                 });
         });
 
-        it('removes values by filter object', function(done)
+        it('removes values by filter object', () =>
         {
             db.values = {
                 'some-guy': { age: 36, name: "Some Guy" },
                 'also-guy': { age: 32, name: "Also Guy" }
             };
 
-            db.remove({ age: 36 })
-                .then(function()
+            return db.remove({ age: 36 })
+                .then(() =>
                 {
                     assert.deepEqual(db.values, {'also-guy': { age: 32, name: "Also Guy" }});
-                    done();
                 });
         });
     });
 
-    describe("Syncing writes", function()
+    describe("Querying", () =>
     {
-        it('triggers a write to disk when called', function(done)
+        it('returns a lodash chain object', () =>
+        {
+            // This might be a little brittle... but works for now.
+            var LodashWrapper = Object.getPrototypeOf(_()).constructor;
+            var values = db.query();
+
+            assert(values instanceof LodashWrapper);
+        });
+
+        it('returns a cloned version of the full database', () =>
+        {
+            db.values['test'] = { foo: 123 };
+            var values = db.query().run();
+            assert(values !== db.values);
+            assert.equal(values.test.foo, db.values.test.foo);
+
+            // Modify the cloned object
+            values['foo'] = {};
+
+            // Ensure the db is not modified
+            assert.equal(db.values.foo, undefined);
+        });
+    });
+
+    describe("Syncing writes", () =>
+    {
+        it('triggers a write to disk when called', () =>
         {
             db = new TDB("test", { rootPath: rootPath });
-            db._writeToDisk = function()
+            db._writeToDisk = () =>
             {
-                done();
                 return Promise.resolve();
             };
 
-            db.sync();
+            return db.sync();
         });
 
-        it('calls the passed in callback when the write is complete', function()
+        it('calls the passed in callback when the write is complete', () =>
         {
             db = new TDB("test", { rootPath: rootPath });
-            db.sync(function()
+            return db.sync(() =>
             {
                 assert(fs.existsSync(db.path), "Database did not write out to the expected location.");
-                done();
             });
         });
     });
