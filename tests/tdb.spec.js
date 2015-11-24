@@ -286,50 +286,6 @@ describe('TDB Instance', () =>
         });
     });
 
-    describe("Updating Values", () =>
-    {
-        it('updates the value with the partial when an existing key is passed', () =>
-        {
-            db.values['test-key'] = { test: true };
-            return db.merge('test-key', { other: 123 })
-                .then((newVal) =>
-                {
-                    assert.deepEqual(newVal, { test: true, other: 123 });
-                });
-        });
-
-        it('creates a new value of the partial when a nonexistent key is passed', () =>
-        {
-            return db.merge('test-key', { other: 123 })
-                .then(() =>
-                {
-                    var val = db.get('test-key');
-                    assert.deepEqual(val, { other: 123 });
-                });
-        });
-
-        it('updates deeply nested objects', () =>
-        {
-            db.values['test-key'] = { test: true, nested: { subkey: { foo: "bar" }, other: 123 }};
-            return db.merge('test-key', { nested: { subkey: { foo: "bleh" }}})
-                .then((newVal) =>
-                {
-                    assert.deepEqual(newVal, { test: true, nested: { subkey: { foo: "bleh" }, other: 123 }});
-                });
-
-        });
-
-        it('creates intermediate keys on deeply nested objects', () =>
-        {
-            db.values['test-key'] = { test: true };
-            return db.merge('test-key', { nested: { subkey: { foo: "bleh" }}})
-                .then((newVal) =>
-                {
-                    assert.deepEqual(newVal, { test: true, nested: { subkey: { foo: "bleh" }}});
-                });
-        });
-    });
-
     describe("Filtering Values", () =>
     {
         it('filters the db using the filter function', () =>
