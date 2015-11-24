@@ -12,7 +12,7 @@
 
 var assert = require("assert");
 var trivialdb = require('../trivialdb');
-var TDB = require('../lib/tdb');
+var TDB = require('../dist/tdb');
 
 // ---------------------------------------------------------------------------------------------------------------------
 
