@@ -122,7 +122,7 @@ describe('TDB Instance', () =>
         it('writeDelay can be used to control the minimum period between writes', (done) =>
         {
             db = new TDB("test", { rootPath: rootPath, writeDelay: 50 });
-            db.store('test-key', { test: true });
+            db.save('test-key', { test: true });
 
             // Check before the write should have hit
             setTimeout(() =>
@@ -142,7 +142,7 @@ describe('TDB Instance', () =>
         it('prettyPrint can be used to control whether or not the json on disk is persisted in compact form', (done) =>
         {
             db = new TDB("test", { rootPath: rootPath, prettyPrint: false });
-            db.store('test-key', { test: true });
+            db.save('test-key', { test: true });
 
             setTimeout(() =>
             {
@@ -155,7 +155,7 @@ describe('TDB Instance', () =>
         it('pk can be used to specify a field of the model to use as the id', () =>
         {
             db = new TDB("test", { writeToDisk: false, pk: 'name' });
-            return db.store({ name: 'bob', admin: false })
+            return db.save({ name: 'bob', admin: false })
                 .then(() =>
                 {
                     assert.deepEqual(db.values, {'bob': { name: 'bob', admin: false }});
@@ -175,7 +175,7 @@ describe('TDB Instance', () =>
             } // end slugify
 
             db = new TDB("articles", { writeToDisk: false, idFunc: slugify });
-            return db.store({ name: "TrivialDB: now with id generation functions!", body: "Read the title, dude." })
+            return db.save({ name: "TrivialDB: now with id generation functions!", body: "Read the title, dude." })
                 .then(() =>
                 {
                     assert.deepEqual(db.values, {"trivialdb-now-with-id-generation-functions":{"name":"TrivialDB: now with id generation functions!","body":"Read the title, dude."}});
@@ -185,22 +185,51 @@ describe('TDB Instance', () =>
 
     describe("Storing Values", () =>
     {
-        it('stores a value under the specified key', () =>
+        it('`set()` stores a value under the specified key', () =>
         {
-            return db.store('test-key', { test: true })
+            db.set('test-key', { test: true });
+            assert('test-key' in db.values, "The key 'test-key' was not found.");
+        });
+
+        it('`set()` autogenerates a key when none is specified', () =>
+        {
+            var key = db.set({ test: true });
+            assert(key in db.values, "The key '" + key + "' was not found.");
+        });
+
+        it('`set()` does not sync to disk', () =>
+        {
+            db = new TDB("test", { rootPath: rootPath });
+            db._writeToDisk = () => { throw new Error("Write to disk!") };
+
+            db.set('test-key', { test: true });
+        });
+
+        it('`save()` stores a value under the specified key', () =>
+        {
+            return db.save('test-key', { test: true })
                 .then(() =>
                 {
                     assert('test-key' in db.values, "The key 'test-key' was not found.");
                 });
         });
 
-        it('autogenerates a key when none is specified', () =>
+        it('`save()` autogenerates a key when none is specified', () =>
         {
-            return db.store({ test: true })
+            return db.save({ test: true })
                 .then((key) =>
                 {
                     assert(key in db.values, "The key '" + key + "' was not found.");
                 });
+        });
+
+
+        it('`save()` syncs to disk', (done) =>
+        {
+            db = new TDB("test", { rootPath: rootPath });
+            db._writeToDisk = () => { done(); return Promise.resolve(); };
+
+            db.save('test-key', { test: true });
         });
     });
 
