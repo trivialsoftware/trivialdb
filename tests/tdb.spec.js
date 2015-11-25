@@ -134,7 +134,7 @@ describe('TDB Instance', () =>
             setTimeout(() =>
             {
                 var jsonStr = fs.readFileSync(db.path).toString();
-                assert.deepEqual(JSON.parse(jsonStr), {'test-key':{test:true}});
+                assert.deepEqual(JSON.parse(jsonStr), {'test-key':{test:true, id: 'test-key'}});
                 done();
             }, 60);
         });
@@ -147,7 +147,7 @@ describe('TDB Instance', () =>
             setTimeout(() =>
             {
                 var jsonStr = fs.readFileSync(db.path).toString();
-                assert.equal(jsonStr, '{"test-key":{"test":true}}');
+                assert.equal(jsonStr, '{"test-key":{"test":true,"id":"test-key"}}');
                 done();
             }, 20);
         });
@@ -178,7 +178,13 @@ describe('TDB Instance', () =>
             return db.save({ name: "TrivialDB: now with id generation functions!", body: "Read the title, dude." })
                 .then(() =>
                 {
-                    assert.deepEqual(db.values, {"trivialdb-now-with-id-generation-functions":{"name":"TrivialDB: now with id generation functions!","body":"Read the title, dude."}});
+                    assert.deepEqual(db.values, {
+                        'trivialdb-now-with-id-generation-functions': {
+                            name: 'TrivialDB: now with id generation functions!',
+                            body: 'Read the title, dude.',
+                            id: 'trivialdb-now-with-id-generation-functions'
+                        }
+                    });
                 });
         });
     });
@@ -203,6 +209,24 @@ describe('TDB Instance', () =>
             db._writeToDisk = () => { throw new Error("Write to disk!") };
 
             db.set('test-key', { test: true });
+        });
+
+        it('`set()` updates the primary key', () =>
+        {
+            db = new TDB("test", { rootPath: rootPath, pk: 'email' });
+            db.set('foo@bar.com', { test: true });
+            db.set('foo2@bar.com', { test: true, email: 'notfoo@bar.com' });
+
+            assert.equal(db.values['foo@bar.com'].email, 'foo@bar.com');
+            assert.equal(db.values['foo2@bar.com'].email, 'foo2@bar.com');
+
+            // Make sure we handle te default id case
+            db = new TDB("test", { rootPath: rootPath });
+            db.set('f', { test: true });
+            db.set('f2', { test: true, id: 'nf' });
+
+            assert.equal(db.values['f'].id, 'f');
+            assert.equal(db.values['f2'].id, 'f2');
         });
 
         it('`save()` stores a value under the specified key', () =>
@@ -288,7 +312,7 @@ describe('TDB Instance', () =>
 
     describe("Filtering Values", () =>
     {
-        it('filters the db using the filter function', () =>
+        it('filters the db by function', () =>
         {
             db.values = {
                 'some-guy': { age: 36, name: "Some Guy" },
@@ -297,13 +321,12 @@ describe('TDB Instance', () =>
                 'additional-guy': { age: 11, name: "Additional Guy" }
             };
 
-            return db.filter((value, key) =>
+            var ages = db.filter((value, key) =>
             {
                 return value.age > 30;
-            }).then((ages) =>
-            {
-                assert.deepEqual(ages, {'some-guy': { age: 36, name: "Some Guy" }, 'also-guy': { age: 32, name: "Also Guy" }});
             });
+
+            assert.deepEqual(ages, [{ age: 36, name: "Some Guy" }, { age: 32, name: "Also Guy" }]);
         });
 
         it('supports filter objects', () =>
@@ -315,42 +338,71 @@ describe('TDB Instance', () =>
                 'additional-guy': { age: 11, name: "Additional Guy" }
             };
 
-            return db.filter({ age: 32 })
-                .then((ages) =>
-                {
-                    assert.deepEqual(ages, {'also-guy': { age: 32, name: "Also Guy" }});
-                });
+            var ages = db.filter({ age: 32 });
+
+            assert.deepEqual(ages, [{ age: 32, name: "Also Guy" }]);
         });
     });
 
     describe("Remove Values", () =>
     {
-        it('removes values by id', () =>
+        it('`del()` removes values by function', () =>
         {
             db.values = {
-                'some-guy': { age: 36, name: "Some Guy" },
-                'also-guy': { age: 32, name: "Also Guy" }
+                'some-guy': { age: 36, name: "Some Guy", id: 'some-guy' },
+                'also-guy': { age: 32, name: "Also Guy", id: 'also-guy' },
+                'some-other-guy': { age: 16, name: "SomeOther Guy", id: 'some-other-guy' },
+                'additional-guy': { age: 11, name: "Additional Guy", id: 'additional-guy' }
             };
 
-            return db.remove('some-guy')
-                .then(() =>
-                {
-                    assert.deepEqual(db.values, {'also-guy': { age: 32, name: "Also Guy" }});
-                });
+            db.del((value) =>
+            {
+                return value.age < 30;
+            });
+
+            assert.deepEqual(db.values, {
+                'some-guy': { age: 36, name: "Some Guy", id: 'some-guy' },
+                'also-guy': { age: 32, name: "Also Guy", id: 'also-guy' }
+            });
         });
 
-        it('removes values by filter object', () =>
+        it('`del()` removes values by filter object', () =>
         {
             db.values = {
-                'some-guy': { age: 36, name: "Some Guy" },
-                'also-guy': { age: 32, name: "Also Guy" }
+                'some-guy': { age: 36, name: "Some Guy", id: 'some-guy' },
+                'also-guy': { age: 32, name: "Also Guy", id: 'also-guy' }
             };
 
-            return db.remove({ age: 36 })
-                .then(() =>
-                {
-                    assert.deepEqual(db.values, {'also-guy': { age: 32, name: "Also Guy" }});
-                });
+            db.del({ age: 36 });
+            assert.deepEqual(db.values, {'also-guy': { age: 32, name: "Also Guy", id: 'also-guy' }});
+        });
+
+        it('`del()` does not sync to disk', () =>
+        {
+            db = new TDB("test", { rootPath: rootPath });
+            db.values = {
+                'some-guy': { age: 36, name: "Some Guy", id: 'some-guy' },
+                'also-guy': { age: 32, name: "Also Guy", id: 'also-guy' }
+            };
+            db._writeToDisk = () => { throw new Error("Write to disk!") };
+
+            db.del('test-key', { age: 36 });
+        });
+
+        it('`remove()` calls `del()`, syncs to disk', (done) =>
+        {
+            db = new TDB("test", { rootPath: rootPath });
+            db.values = {
+                'some-guy': { age: 36, name: "Some Guy", id: 'some-guy' },
+                'also-guy': { age: 32, name: "Also Guy", id: 'also-guy' }
+            };
+            db._writeToDisk = () =>
+            {
+                assert.deepEqual(db.values, {'also-guy': { age: 32, name: "Also Guy", id: 'also-guy' }});
+                return Promise.resolve(done());
+            };
+
+            db.remove({ age: 36 });
         });
     });
 
