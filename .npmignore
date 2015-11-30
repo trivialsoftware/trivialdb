@@ -9,6 +9,5 @@ node_modules
 .idea
 
 # Ignore source files
-trivialdb.js
 lib
 examples
