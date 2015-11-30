@@ -11,3 +11,4 @@ node_modules
 # Ignore source files
 lib
 examples
+tests
