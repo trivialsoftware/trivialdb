@@ -23,6 +23,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "base62": "^1.1.0",
     "bluebird": "^3.0.5",
     "lodash": "^3.10.1",
     "make-error": "^1.0.4",
