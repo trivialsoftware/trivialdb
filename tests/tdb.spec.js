@@ -63,7 +63,7 @@ describe('TDB Instance', () =>
 
         db = new TDB("test_write", { rootPath: rootPath });
         db.values = testDBObj;
-        return db.sync()
+        return db.sync(true)
             .then(() =>
             {
                 // This both tests that it writes, and that the json files are following the correct naming convention.
@@ -96,7 +96,7 @@ describe('TDB Instance', () =>
 
             db = new TDB("test", { writeToDisk: false, rootPath: rootPath });
             db.values = testDBObj;
-            return db.sync()
+            return db.sync(true)
                 .then(() =>
                 {
                     assert(!fs.existsSync(db.path), "Database wrote out to disk.");
@@ -112,7 +112,7 @@ describe('TDB Instance', () =>
         it('rootPath can be used to control where database files are written', () =>
         {
             db = new TDB("test", { rootPath: rootPath });
-            return db.sync()
+            return db.sync(true)
                 .then(() =>
                 {
                     assert(fs.existsSync(db.path), "Database did not write out to the expected location.");
