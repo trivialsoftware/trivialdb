@@ -48,6 +48,12 @@ describe('TDB Instance', () =>
         assert.equal(db.name, "test");
     });
 
+    it('handles no options being passed in', () =>
+    {
+        db = new TDB("test2");
+        assert.equal(db.name, "test2");
+    });
+
     it('loads a database instance if one exists', () =>
     {
         db = new TDB("tdb_test", { writeToDisk: false, rootPath: rootPath });
