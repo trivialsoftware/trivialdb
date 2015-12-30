@@ -1,18 +1,13 @@
 // ---------------------------------------------------------------------------------------------------------------------
-// Unit Tests for the trivialdb.spec.js module.
-//
-// @module trivialdb.spec.js
-// ---------------------------------------------------------------------------------------------------------------------
-
-// ---------------------------------------------------------------------------------------------------------------------
-// Unit Tests for the tdb.spec.js module.
-//
-// @module tdb.spec.js
+/// Unit Tests for the trivialdb.spec.js module.
+///
+/// @module
 // ---------------------------------------------------------------------------------------------------------------------
 
 var assert = require("assert");
 var trivialdb = require('../trivialdb');
 var TDB = require('../dist/tdb');
+var TDBNamespace = require('../dist/namespace');
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -38,6 +33,29 @@ describe('TrivialDB', function()
             var db2 = trivialdb.db("trivialdb_test");
 
             assert.equal(db, db2);
+        });
+    });
+
+    describe('namespace()', function()
+    {
+        it('is aliased as \'ns\'', function()
+        {
+            var ns = trivialdb.ns("trivialdb_test");
+            assert(ns instanceof TDBNamespace, "ns is not an instance of TDBNamespace");
+        });
+
+        it('returns a TDBNamespace instance', function()
+        {
+            var ns = trivialdb.namespace("trivialdb_test");
+            assert(ns instanceof TDBNamespace, "ns is not an instance of TDBNamespace");
+        });
+
+        it('returns the same TDBNamespace instance if you request it multiple times', function()
+        {
+            var ns = trivialdb.namespace("trivialdb_test");
+            var ns2 = trivialdb.namespace("trivialdb_test");
+
+            assert.equal(ns, ns2);
         });
     });
 });
