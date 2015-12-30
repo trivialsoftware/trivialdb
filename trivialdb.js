@@ -5,26 +5,32 @@
 //----------------------------------------------------------------------------------------------------------------------
 
 var TDB = require('./dist/tdb');
+var TDBNamespace = require('./dist/namespace');
 var errors = require('./dist/errors');
 
 //----------------------------------------------------------------------------------------------------------------------
 
-var dbInstances = {};
+var namespaces = {};
+
+function ns(name, options)
+{
+    var ns = namespaces[name] || new TDBNamespace(name, options);
+    namespaces[name] = ns;
+
+    return ns;
+} // end ns
+
+function db(name, options)
+{
+    return ns('').db(name, options);
+} // end db
 
 module.exports = {
-    db: function(name, options)
-    {
-        var db = dbInstances[name];
-
-        if(!db)
-        {
-            db = new TDB(name, options);
-            dbInstances[name] = db;
-        } // end if
-
-        return db;
-    },
+    db,
+    ns,
+    namespace: ns,
     TDB: TDB,
+    TDBNamespace: TDBNamespace,
     errors: errors
 }; // end exports
 
