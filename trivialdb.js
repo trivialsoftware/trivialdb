@@ -4,34 +4,46 @@
 // @module trivialdb.js
 //----------------------------------------------------------------------------------------------------------------------
 
-var TDB = require('./dist/tdb');
-var TDBNamespace = require('./dist/namespace');
-var errors = require('./dist/errors');
-
-//----------------------------------------------------------------------------------------------------------------------
-
-var namespaces = {};
-
-function ns(name, options)
+// Only create the main module object if it hasn't been created yet in this process.
+if(process.$$triviadb)
 {
-    var ns = namespaces[name] || new TDBNamespace(name, options);
-    namespaces[name] = ns;
-
-    return ns;
-} // end ns
-
-function db(name, options)
+    // `trivialdb` has already been initialized; just export the existing module.
+    module.exports = process.$$triviadb;
+    console.warn("`trivialdb` has already been initialized; exporting the existing module.");
+}
+else
 {
-    return ns('').db(name, options);
-} // end db
+    var TDB = require('./dist/tdb');
+    var TDBNamespace = require('./dist/namespace');
+    var errors = require('./dist/errors');
 
-module.exports = {
-    db,
-    ns,
-    namespace: ns,
-    TDB: TDB,
-    TDBNamespace: TDBNamespace,
-    errors: errors
-}; // end exports
+    //------------------------------------------------------------------------------------------------------------------
+
+    var namespaces = {};
+
+    function ns(name, options)
+    {
+        var ns = namespaces[name] || new TDBNamespace(name, options);
+        namespaces[name] = ns;
+
+        return ns;
+    } // end ns
+
+    function db(name, options)
+    {
+        return ns('').db(name, options);
+    } // end db
+
+
+    // Set the global import
+    process.$$triviadb = (module.exports = {
+        db,
+        ns,
+        namespace: ns,
+        TDB: TDB,
+        TDBNamespace: TDBNamespace,
+        errors: errors
+    });
+} // end if
 
 //----------------------------------------------------------------------------------------------------------------------
