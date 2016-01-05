@@ -1,3 +1,7 @@
+# We do not need sudo, but want to use trusty.
+sudo: false
+dist: trusty
+
 language: node_js
 
 # Run tests against the latest version of node, and the latest LTS.
