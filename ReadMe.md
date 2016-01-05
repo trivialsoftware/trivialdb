@@ -2,6 +2,14 @@
 
 [![Build Status](https://travis-ci.org/Morgul/trivialdb.svg?branch=master)](https://travis-ci.org/Morgul/trivialdb)
 
+
+----
+
+### _THIS IS ALL OUTDATED._
+_New documentation is coming._
+
+----
+
 A lightweight key/value json storage with persistence. Conceptually, it's just a thin API wrapper around plain javascript
 objects; with the added bonus of doing throttled asynchronous writes on changes. Its on disk format is simply "json on
 disk"; basically the json version of the plain object, saved to a file on disk. This makes making hand edits not
@@ -25,7 +33,7 @@ in memory anyway; your data sets can get relatively large before you even need t
 Simply install with npm:
 
 ```bash
-$ npm install --save trivialdb:
+$ npm install --save trivialsb@v2.0.0-beta.1
 ```
 
 ## API
