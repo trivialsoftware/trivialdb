@@ -496,13 +496,13 @@ describe('TDB Instance', () =>
             assert.equal(db.values['test2'].foo, 123);
             assert.equal(db.values['test3'].foo, 123);
 
-            return Promise.delay(10)
+            return Promise.delay(15)
                 .then(() =>
                 {
                     assert.equal(db.values['test1'], undefined);
                     assert.equal(db.values['test2'], undefined);
                 })
-                .delay(52)
+                .delay(50)
                 .then(() =>
                 {
                     assert.equal(db.values['test3'], undefined);
