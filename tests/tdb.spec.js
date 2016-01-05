@@ -438,6 +438,96 @@ describe('TDB Instance', () =>
         });
     });
 
+    describe("Expiration", () =>
+    {
+        it("expires keys immediately if their expiration is past", () =>
+        {
+            db.set('test', { foo: 123 }, Date.now() - 1000);
+            assert.equal(db.values['test'], undefined);
+        });
+
+        it("expires keys at the given timeout", () =>
+        {
+            var testObj = { foo: 123, id: 'test' };
+            db.set('test', testObj, Date.now() + 10);
+            assert.deepEqual(db.values['test'], testObj);
+
+            return Promise.delay(20).then(() =>
+            {
+                assert.equal(db.values['test'], undefined);
+            });
+        });
+
+        it("supports multiple keys with the same expiration", () =>
+        {
+            var testObj = { foo: 123 };
+            var exp = Date.now() + 10;
+            db.set('test1', testObj, exp);
+            db.set('test2', testObj, exp);
+
+            // Ensure The values were set correctly
+            assert.equal(db.values['test1'].foo, 123);
+            assert.equal(db.values['test2'].foo, 123);
+
+            // Ensure that both keys are set to expire
+            assert(_.contains(db._expirations[exp], 'test1'), "Key 'test1' is not set to expire.");
+            assert(_.contains(db._expirations[exp], 'test2'), "Key 'test2' is not set to expire.");
+
+            return Promise.delay(10)
+                .then(() =>
+                {
+                    assert.equal(db.values['test2'], undefined);
+                    assert.equal(db.values['test1'], undefined);
+                });
+        });
+
+        it("supports multiple expirations, set in any order", () =>
+        {
+            var testObj = { foo: 123 };
+
+            db.set('test', testObj, Date.now() + 250);
+            db.set('test1', testObj, Date.now() + 10);
+            db.set('test2', testObj, Date.now() + 10);
+            db.set('test3', testObj, Date.now() + 52);
+
+            // Ensure The values were set correctly
+            assert.equal(db.values['test'].foo, 123);
+            assert.equal(db.values['test1'].foo, 123);
+            assert.equal(db.values['test2'].foo, 123);
+            assert.equal(db.values['test3'].foo, 123);
+
+            return Promise.delay(10)
+                .then(() =>
+                {
+                    assert.equal(db.values['test1'], undefined);
+                    assert.equal(db.values['test2'], undefined);
+                })
+                .delay(52)
+                .then(() =>
+                {
+                    assert.equal(db.values['test3'], undefined);
+                })
+                .delay(250)
+                .then(() =>
+                {
+                    assert.equal(db.values['test'], undefined);
+                });
+        });
+
+        it("clears the timeout once there are no new expirations", () =>
+        {
+            var testObj = { foo: 123, id: 'test' };
+            db.set('test', testObj, Date.now() + 10);
+            assert.deepEqual(db.values['test'], testObj);
+
+            return Promise.delay(20).then(() =>
+            {
+                assert.equal(db.values['test'], undefined);
+                assert.equal(db._expirationTimeout, null);
+            });
+        });
+    });
+
     describe("Syncing writes", () =>
     {
         it('triggers a write to disk when called', () =>
