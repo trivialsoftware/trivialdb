@@ -5,9 +5,9 @@
 // ---------------------------------------------------------------------------------------------------------------------
 
 var assert = require("assert");
-var trivialdb = require('../trivialdb');
-var TDB = require('../dist/tdb');
-var TDBNamespace = require('../dist/namespace');
+var trivialdb = require('../src/trivialdb');
+var TDB = require('../src/lib/tdb');
+var TDBNamespace = require('../src/lib/namespace');
 
 // ---------------------------------------------------------------------------------------------------------------------
 

@@ -6,7 +6,7 @@
 
 var Promise = require('bluebird');
 var util = require('util');
-var trivialdb = require('../trivialdb');
+var trivialdb = require('../src/trivialdb');
 
 //----------------------------------------------------------------------------------------------------------------------
 

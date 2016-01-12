@@ -5,7 +5,6 @@
 /// @module
 //----------------------------------------------------------------------------------------------------------------------
 
-var util = require('util');
 var EventEmitter = require('events').EventEmitter;
 
 var _ = require('lodash');
@@ -168,7 +167,7 @@ class TDB extends EventEmitter
                 delete this._expirations[timestamp];
 
                 // Delete all keys for this timestamp
-                _.each(keys, (key) => { delete this.values[key] });
+                _.each(keys, (key) => { delete this.values[key]; });
             })
             .run();
 
@@ -180,7 +179,7 @@ class TDB extends EventEmitter
                 delete this._expirations[nextExp.timestamp];
 
                 // Delete all keys for this timestamp
-                _.each(nextExp.keys, (key) => { delete this.values[key] });
+                _.each(nextExp.keys, (key) => { delete this.values[key]; });
 
                 // Schedule the next expiration
                 this._checkExpiration();
