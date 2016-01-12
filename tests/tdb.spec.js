@@ -12,8 +12,8 @@ var os = require('os');
 var _ = require('lodash');
 var Promise = require('bluebird');
 
-var TDB = require('../lib/tdb');
-var errors = require('../lib/errors');
+var TDB = require('../src/lib/tdb');
+var errors = require('../src/lib/errors');
 
 // ---------------------------------------------------------------------------------------------------------------------
 

@@ -13,9 +13,9 @@ if(process.$$triviadb)
 }
 else
 {
-    var TDB = require('./dist/tdb');
-    var TDBNamespace = require('./dist/namespace');
-    var errors = require('./dist/errors');
+    var TDB = require('./lib/tdb');
+    var TDBNamespace = require('./lib/namespace');
+    var errors = require('./lib/errors');
 
     //------------------------------------------------------------------------------------------------------------------
 
@@ -23,10 +23,10 @@ else
 
     function ns(name, options)
     {
-        var ns = namespaces[name] || new TDBNamespace(name, options);
-        namespaces[name] = ns;
+        var namespace = namespaces[name] || new TDBNamespace(name, options);
+        namespaces[name] = namespace;
 
-        return ns;
+        return namespace;
     } // end ns
 
     function db(name, options)

@@ -9,6 +9,11 @@ node_modules
 .idea
 
 # Ignore source files
-lib
+.babelrc
+.eslintrc
+.gitignore
+*.yml
+Gruntfile.js
+src
 examples
 tests

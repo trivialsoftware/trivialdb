@@ -7,8 +7,8 @@
 var path = require('path');
 var assert = require("assert");
 
-var TDB = require('../lib/tdb');
-var TDBNamespace = require('../lib/namespace');
+var TDB = require('../src/lib/tdb');
+var TDBNamespace = require('../src/lib/namespace');
 
 // ---------------------------------------------------------------------------------------------------------------------
 
