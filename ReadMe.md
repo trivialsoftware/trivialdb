@@ -1,6 +1,10 @@
 # TrivialDB
 
-[![Build Status](https://travis-ci.org/Morgul/trivialdb.svg?branch=master)](https://travis-ci.org/Morgul/trivialdb)
+[![Build Status](https://img.shields.io/travis/Morgul/trivialdb/master.svg)](https://travis-ci.org/Morgul/trivialdb)
+[![npm Version](https://img.shields.io/npm/v/trivialdb.svg)](https://www.npmjs.com/package/trivialdb)
+![npm](https://img.shields.io/npm/dm/trivialdb.svg)
+[![GitHub issues](https://img.shields.io/github/issues/Morgul/trivialdb.svg)](https://github.com/Morgul/trivialdb/issues)
+[![Donate $5](https://img.shields.io/badge/Donate-$5-yellow.svg)](https://paypal.me/morgul/5)
 
 TrivialDB is a lightweight key/value json storage with persistence. Conceptually, it's just a thin lodash wrapper around
 plain javascript objects; with the added bonus of doing versioned asynchronous writes on changes. Its on disk format is 
@@ -344,3 +348,10 @@ While I only work on TrivialDB in my spare time (what little there is), I use it
 happy to accept merge requests, and/or any issues filed. If you want to fork it and improve part of the API, I'm ok with
 that too, however I ask you open an issue to discuss your proposed changes _first_. And, since it's MIT licensed, you
 can of course take the code and use it in your own projects.
+
+## Donations
+
+[![Donate $5](https://img.shields.io/badge/Donate-$5-yellow.svg)](https://paypal.me/morgul/5)
+
+I accept donations for my hard work. While this is not my primary means of income, by any stretch, I would not mind a 
+few bucks for a job well done. 
