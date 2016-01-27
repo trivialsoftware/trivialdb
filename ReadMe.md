@@ -2,54 +2,87 @@
 
 [![Build Status](https://travis-ci.org/Morgul/trivialdb.svg?branch=master)](https://travis-ci.org/Morgul/trivialdb)
 
-
-----
-
-### _THIS IS ALL OUTDATED._
-_New documentation is coming._
-
-----
-
-A lightweight key/value json storage with persistence. Conceptually, it's just a thin API wrapper around plain javascript
-objects; with the added bonus of doing throttled asynchronous writes on changes. Its on disk format is simply "json on
-disk"; basically the json version of the plain object, saved to a file on disk. This makes making hand edits not
-just possible, but simple.
+TrivialDB is a lightweight key/value json storage with persistence. Conceptually, it's just a thin lodash wrapper around
+plain javascript objects; with the added bonus of doing versioned asynchronous writes on changes. Its on disk format is 
+simply "json on disk"; basically the json version of the plain object, saved to a file on disk. This makes making hand 
+edits not just possible, but simple.
 
 ## Use Case
 
-TrivialDB is intended for simple storage needs. It's in-process, small, and very fast for small data sets. It takes almost
-nothing to get up and going with it, and it has just enough features to make it worth while. Personally I've found its
-a great fit for a development database for websites, or even to power a simple blog.
+TrivialDB is intended for simple storage needs. It's in-process, small, and very, _very_ fast. It takes almost nothing 
+to get up and running with it, and it gives you an impressive amount of power, thanks to [lodash chaining][]. I've found 
+its a great fit for any personal project that needs to persist data.
 
-The one caveat to keep in mind is this: _every database your work with is stored in memory_. Since TrivialDB is in-process,
-you might run into the memory limit of node; on versions before 0.11+ there's a 1.4GB limit. If you try and load a
-database of all your cat pictures, you might run out of memory pretty quickly.
+The one caveat to keep in mind is this: _every database you work with is stored in memory_. Since TrivialDB is 
+in-process, you might run into the memory limits of node; (on versions before 0.12 there's a 1.4GB - 1.7GB limit). 
+However, this isn't actually that much of a limitation. Generally, you're working with a large amount of your 
+data in memory anyway; your data sets can get relatively large before you even need to worry about this.
 
-That being said, this isn't actually much of a limitation. Generally, you're working with a large amount of your data
-in memory anyway; your data sets can get relatively large before you even need to worry about this.
+In practice, I use TrivialDB to power a wiki that has thousands of printed pages worth of text, and the node process 
+uses around 200mb, with the json being around 1mb on disk. For things like a blog, or user database, or session storage,
+or a preference system, TrivialDB will work for a long time before you need to move to something out of process.
+
+[lodash chaining]: https://lodash.com/docs#_
 
 ## Installation
 
 Simply install with npm:
 
 ```bash
-$ npm install --save trivialsb@v2.0.0-beta.1
+$ npm install --save trivialdb
 ```
 
 ## API
 
-### Database API
+There are two concepts to remember with TrivialDB: namespaces and databases. A 'namespace' is, as it implies, just an
+isolated environment with a name. Inside a namespace, all _database_ names must be unique. So, if you want to have to 
+independent 'foobar' databases, you will need to have them in different namespaces.
 
-This is the API that previous versions of TrivialDB pioneered. It's relatively low-level, and if that's how you'd rather
-work with your database, that's fine. It is still the primary focus of TrivialDB.
+Databases, on the other hand, are the heart and soul of TrivialDB. As the name implies, they hold all your data. 
+Database objects are the interesting ones, with the main API you will be working with in TrivialDB.
 
-#### Loading or saving databases
+### Creating a namespace
 
-* `db(databaseName, options)` - Returns a database instance.
+* `ns(name, options)` - Returns a `TDBNamespace` object.
+	* _alias: 'namespace'_
+		
+```javascript
+var trivialdb = require('trivialdb');
 
-TrivialDB lazily loads databases. TrivialDB also creates databases if they don't exist. To load or create a database:
+// Create a namespace
+var ns = triviadb.ns('test-ns');
+
+// Create a namespace with some options
+var ns = triviadb.ns('test-ns', { dbPath: 'server/db' });
+
+// Create a database inside that namespace
+var db = ns.db('test', { writeToDisk: false });
+```
+
+Once you've created your namespace object, you can create or retrieve database instances from it, just like you can the 
+main TrivialDB module.
+
+##### Options
+
+The options supported by the `ns` call are:
 
 ```javascript
+{
+    basePath: "..."	// The base path for all other paths to be relative to. (Defaults to the application's base directory.)
+    dbPath: "..."	// The path, relative to `basePath` to the root database folder. (Defaults to 'db'.)
+}
+```
+
+If you call `ns` passing in the name of an existing namespace, any options passed will be ignored.
+
+### Creating a database
+
+* `db(name, options)` - Returns a database instance.
+	* _alias: 'database'_
+
+```javascript
+var trivialdb = require('trivialdb');
+
 // Open or create a database
 var db = trivialdb.db('some_db');
 
@@ -57,15 +90,13 @@ var db = trivialdb.db('some_db');
 var db = trivialdb.db('some_db', { writeToDisk: false });
 ```
 
-This will look for a file named `"./some_db.json"`. (If your database lives somewhere else, you can pass the `rootPath`
-option in to the `db` call.)
+By default, when a new database is created, it will look for a file named `'some_db.json'` inside the database folder.
+(By default this is `'<application>/db'`. You can control this path by setting the `basePath` or `dbPath` options of the 
+namespace, or alternatively, the `dbPath` or `rootPath` options of the database.)
 
-You can request the same database multiple times, and get back the same instance. This allows you to request the
-database by name in different places in your code, and not worry about the two database instance fighting with each
-other. (The previous behavior was clearly broken, and resulted in very strange issues.)
-
-_Note_: When you request a database any other time than the first, the options are ignored. There is currently no way to
-change a database's options at run time.
+You can request the same database multiple times, and get back the same instance (though any options passed on 
+subsequent calls will be ignored). This allows you to request the database by name in different places in your code, 
+and not worry about the two database instance fighting with each other.
 
 ##### Options
 
@@ -76,12 +107,15 @@ The options supported by the `db` call are:
     writeToDisk: true | false,  // Whether or not to persist the database to disk. (Default: `true`)
     loadFromDisk: true | false, // Whether or not to read the database in from disk on load. (Default: `true`)
     rootPath: "...",            // The path to a folder that will contain the persisted database json files. (Default: './')
+    dbPath: "..."				// The path, relative to the namespace's `basePath` to the root database folder. (Defaults to 'db'.)
     writeDelay: ...,            // A number in milliseconds to wait between writes to the disk. (Default: 0)
     prettyPrint: true | false,  // Whether or not the json on disk should be pretty printed. (Default: `true`)
     pk: "...",                  // The field in the object to use as the primary key. (Default: `undefined`)
     idFunc: function(){...}     // The function to use to generate unique ids. (Default: `uuid.v4()`)
 }
 ```
+
+If you call `db` passing in the name of an existing namespace, any options passed will be ignored.
 
 ##### Custom ID Generation
 
@@ -115,6 +149,13 @@ db.store({ name: "TrivialDB: now with id generation functions!", body: "Read the
 
 Be careful; it is up to you to ensure your generated ids are unique. Additionally, if your generation function blows up,
 TrivialDB may return some nonsensical errors. (This may improve in the future.)
+
+---
+
+**OLD Docs** (Unconverted yet)
+
+---
+
 
 #### Storing Values
 
