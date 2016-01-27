@@ -266,7 +266,11 @@ TrivialDB will automatically delete the key. Doing another set with a different 
 * Asynchronous
     * `remove(predicate)` - Returns a promise resolved with a list of removed values.
 
-TODO: Write.
+Removing values works off a lodash predicate, must like [filter][]. This allows for removing multiple documents at the 
+same time. However, if you only wish to remove one, you will need to pass in an object that selects your primary key, 
+for example:`{ id: 'my_key' }`.
+
+[filter]: https://lodash.com/docs#filter
 
 ### Query API
 
@@ -289,6 +293,7 @@ var vals = db.filter(function(value, key)
 ```
 
 Sometimes, you need to query based on more than just the key. To do that, TrivialDB gives you a very simple filter query.
+
 TODO: Write.
 
 #### Advanced Queries
