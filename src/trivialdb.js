@@ -4,7 +4,6 @@
 // @module trivialdb.js
 //----------------------------------------------------------------------------------------------------------------------
 
-import TDB from './lib/tdb';
 import TDBNamespace from './lib/namespace';
 import errors from './lib/errors';
 
@@ -40,8 +39,6 @@ else
         db,
         namespace: ns,
         database: db,
-        TDB: TDB,
-        TDBNamespace: TDBNamespace,
         errors: errors
     });
 } // end if
