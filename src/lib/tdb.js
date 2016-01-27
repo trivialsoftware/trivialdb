@@ -5,18 +5,22 @@
 /// @module
 //----------------------------------------------------------------------------------------------------------------------
 
-var EventEmitter = require('events').EventEmitter;
+import fs from 'fs';
+import { EventEmitter } from 'events';
 
-var _ = require('lodash');
-var base62 = require('base62');
-var uuid = require('node-uuid');
-var Promise = require('bluebird');
+import _ from 'lodash';
+import base62 from 'base62';
+import uuid from 'node-uuid';
+import Promise from 'bluebird';
+import _mkdirp from 'mkdirp';
 
-var fs = Promise.promisifyAll(require('fs'));
-var mkdirp = Promise.promisify(require('mkdirp'));
+import pathlib from './pathlib';
+import errors from './errors';
 
-var pathlib = require('./pathlib');
-var errors = require('./errors');
+var mkdirp = Promise.promisify(_mkdirp);
+var statAsync = Promise.promisify(fs.stat);
+var writeFileAsync = Promise.promisify(fs.writeFile);
+var readFileAsync = Promise.promisify(fs.readFile);
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -207,7 +211,7 @@ class TDB extends EventEmitter
             this._writePromise = Promise.delay(timeout)
                 .then(() =>
                 {
-                    return fs.statAsync(this.rootPath);
+                    return statAsync(this.rootPath);
                 })
                 .then((stats) =>
                 {
@@ -231,7 +235,7 @@ class TDB extends EventEmitter
                     // Build our json string
                     var jsonStr = JSON.stringify(this.values, null, indent);
 
-                    return fs.writeFileAsync(this.path, jsonStr)
+                    return writeFileAsync(this.path, jsonStr)
                         .then(() =>
                         {
                             this._lastWrittenVersion = version;
@@ -360,7 +364,7 @@ class TDB extends EventEmitter
             throw new Error("Database is not configured to load from disk.");
         } // end if
 
-        return fs.readFileAsync(this.path)
+        return readFileAsync(this.path)
             .then((jsonStr) =>
             {
                 try
@@ -424,7 +428,6 @@ class TDB extends EventEmitter
 
 //----------------------------------------------------------------------------------------------------------------------
 
-// Must use old style exports, so es5 code can import.
-module.exports = TDB;
+export default TDB;
 
 //----------------------------------------------------------------------------------------------------------------------

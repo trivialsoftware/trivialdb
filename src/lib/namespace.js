@@ -16,7 +16,7 @@ class TDBNamespace {
         options = options || {};
 
         // By default, we assume our base path to be the application's main directory.
-        this.basepath = options.basePath || pathlib.getRoot();
+        this.basePath = options.basePath || pathlib.getRoot();
 
         // By default, this is simply a folder called 'db'
         this.dbPath = options.dbPath || 'db';
@@ -25,7 +25,7 @@ class TDBNamespace {
         this._dbInstances = {};
     } // end constructor
 
-    get rootPath(){ return pathlib.join(this.basepath, this.dbPath, this.name); }
+    get rootPath(){ return pathlib.join(this.basePath, this.dbPath, this.name); }
 
     db(name, options)
     {
@@ -38,7 +38,6 @@ class TDBNamespace {
 
 //----------------------------------------------------------------------------------------------------------------------
 
-// Must use old style exports, so es5 code can import.
-module.exports = TDBNamespace;
+export default TDBNamespace;
 
 //----------------------------------------------------------------------------------------------------------------------

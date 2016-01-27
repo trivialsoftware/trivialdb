@@ -41,7 +41,7 @@ class WriteDatabaseError extends BaseError
 
 //----------------------------------------------------------------------------------------------------------------------
 
-module.exports = {
+export default {
     NotImplemented: NotImplementedError,
     DocumentNotFound: DocumentNotFoundError,
     WriteDatabase: WriteDatabaseError

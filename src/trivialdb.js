@@ -4,6 +4,12 @@
 // @module trivialdb.js
 //----------------------------------------------------------------------------------------------------------------------
 
+import TDB from './lib/tdb';
+import TDBNamespace from './lib/namespace';
+import errors from './lib/errors';
+
+//----------------------------------------------------------------------------------------------------------------------
+
 // Only create the main module object if it hasn't been created yet in this process.
 if(process.$$triviadb)
 {
@@ -13,12 +19,6 @@ if(process.$$triviadb)
 }
 else
 {
-    var TDB = require('./lib/tdb');
-    var TDBNamespace = require('./lib/namespace');
-    var errors = require('./lib/errors');
-
-    //------------------------------------------------------------------------------------------------------------------
-
     var namespaces = {};
 
     function ns(name, options)
@@ -34,12 +34,12 @@ else
         return ns('').db(name, options);
     } // end db
 
-
     // Set the global import
     process.$$triviadb = (module.exports = {
-        db,
         ns,
+        db,
         namespace: ns,
+        database: db,
         TDB: TDB,
         TDBNamespace: TDBNamespace,
         errors: errors
