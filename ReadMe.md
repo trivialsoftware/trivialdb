@@ -274,7 +274,11 @@ for example:`{ id: 'my_key' }`.
 
 ### Query API
 
-TODO: Write.
+Instead of exposing a large, complex Query API, TrivialDB exposes [lodash chain][] objects, allowing you to perform 
+lodash queries to filter and manipulate your data in any way you want. As this uses lazy evaluation, it's fast and 
+efficient even on large datasets.
+
+[lodash chain]: https://lodash.com/docs#_
 
 #### Basic Filtering
 
@@ -292,15 +296,25 @@ var vals = db.filter(function(value, key)
 });
 ```
 
-Sometimes, you need to query based on more than just the key. To do that, TrivialDB gives you a very simple filter query.
+TrivialDB has a simple filter function for when you just want a lodash [filter][]. It works as you would expect, 
+filtering all items in the database by the predicate you passed in.
 
-TODO: Write.
+[filter]: https://lodash.com/docs#filter
 
-#### Advanced Queries
+#### AdvancedQueries
 
 * `query()` - Returns a [lodash chain][] object, wrapped around all values in the database.
 
-TODO: Write.
+```javascript
+// Query for all admins, sorting by created date
+var items = db.query()
+	.filter({ admin: true })
+	.sortBy('date')
+	.run();
+```
+
+This exposes a [lodash chain][] object, which allows you to run whatever lodash queries you want. It clones the 
+database's values, so feel free to make any modifications you desire; you will not affect the data in the database.
 
 [lodash chain]: https://lodash.com/docs#_
 
