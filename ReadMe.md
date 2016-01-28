@@ -310,7 +310,7 @@ filtering all items in the database by the predicate you passed in.
 var items = db.query()
 	.filter({ admin: true })
 	.sortBy('date')
-	.run();
+	.value();
 ```
 
 This exposes a [lodash chain][] object, which allows you to run whatever lodash queries you want. It clones the 

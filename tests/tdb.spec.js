@@ -426,7 +426,7 @@ describe('TDB Instance', () =>
         it('returns a cloned version of the full database', () =>
         {
             db.values['test'] = { foo: 123 };
-            var values = db.query().run();
+            var values = db.query().value();
             assert(values !== db.values);
             assert.equal(values.test.foo, db.values.test.foo);
 
@@ -470,8 +470,8 @@ describe('TDB Instance', () =>
             assert.equal(db.values['test2'].foo, 123);
 
             // Ensure that both keys are set to expire
-            assert(_.contains(db._expirations[exp], 'test1'), "Key 'test1' is not set to expire.");
-            assert(_.contains(db._expirations[exp], 'test2'), "Key 'test2' is not set to expire.");
+            assert(_.includes(db._expirations[exp], 'test1'), "Key 'test1' is not set to expire.");
+            assert(_.includes(db._expirations[exp], 'test2'), "Key 'test2' is not set to expire.");
 
             return Promise.delay(10)
                 .then(() =>

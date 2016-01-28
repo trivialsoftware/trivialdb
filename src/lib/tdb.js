@@ -172,8 +172,7 @@ class TDB extends EventEmitter
 
                 // Delete all keys for this timestamp
                 _.each(keys, (key) => { delete this.values[key]; });
-            })
-            .run();
+            });
 
         var nextExp = this._getNextExp();
         if(nextExp)
@@ -307,7 +306,7 @@ class TDB extends EventEmitter
 
     del(predicate)
     {
-        var removed = _(_.values(this.values)).remove(predicate).run();
+        var removed = _(_.values(this.values)).remove(predicate).value();
 
         _.each(removed, (item) =>
         {
@@ -348,7 +347,7 @@ class TDB extends EventEmitter
 
     filter(predicate)
     {
-        return _(_.cloneDeep(this.values)).filter(predicate).run();
+        return _(_.cloneDeep(this.values)).filter(predicate).value();
     } // end filter
 
     query()
