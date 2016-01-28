@@ -4,37 +4,47 @@
 // @module error.js
 //----------------------------------------------------------------------------------------------------------------------
 
-var SuperError = require('super-error');
+import { BaseError } from 'make-error';
 
 //----------------------------------------------------------------------------------------------------------------------
 
-SuperError.subclass(exports, 'NotImplementedError', function(api)
+class NotImplementedError extends BaseError
 {
-    this.message = api + " not implemented.";
-}); // end NotImplementedError
+    constructor(api)
+    {
+        super(`'${api}' is not implemented.`);
+    } // end constructor
+} // end NotImplemented Error
 
 //----------------------------------------------------------------------------------------------------------------------
 
-SuperError.subclass(exports, 'DocumentNotFound', function(id)
+class DocumentNotFoundError extends BaseError
 {
-    this.id = id;
-    this.message = "Document with id '" + id + "' not found.";
-}); // end DocumentNotFound
+    constructor(doc)
+    {
+        super(`Document with id '${doc}' not found.`);
+        this.doc = doc;
+    } // end constructor
+} // end DocumentNotFoundError
 
 //----------------------------------------------------------------------------------------------------------------------
 
-SuperError.subclass(exports, 'ValidationError', function(key, expectedType, message)
+class WriteDatabaseError extends BaseError
 {
-    this.key = key;
-    this.expectedType = expectedType;
-    this.message = message || "Key '" + key + "' is not of type '" + expectedType +"'.";
-}); // end ValidationError
+    constructor(error, path)
+    {
+        super(`Error writing database('${ path }'): ${error}`);
+        this.innerError = error;
+        this.path = path;
+    } // end constructor
+} // end WriteDatabaseError
 
 //----------------------------------------------------------------------------------------------------------------------
 
-SuperError.subclass(exports, 'WriteError', function(message)
-{
-    this.message = "Error writing database: " + message;
-}); // end WriteError
+export default {
+    NotImplemented: NotImplementedError,
+    DocumentNotFound: DocumentNotFoundError,
+    WriteDatabase: WriteDatabaseError
+};
 
 //----------------------------------------------------------------------------------------------------------------------

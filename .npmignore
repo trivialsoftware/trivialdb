@@ -8,5 +8,12 @@ node_modules
 # Jetbrains IDE project files
 .idea
 
-# Build files
-dist
+# Ignore source files
+.babelrc
+.eslintrc
+.gitignore
+*.yml
+Gruntfile.js
+src
+examples
+tests

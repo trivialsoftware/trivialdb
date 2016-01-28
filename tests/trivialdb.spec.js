@@ -1,18 +1,13 @@
 // ---------------------------------------------------------------------------------------------------------------------
-// Unit Tests for the trivialdb.spec.js module.
-//
-// @module trivialdb.spec.js
-// ---------------------------------------------------------------------------------------------------------------------
-
-// ---------------------------------------------------------------------------------------------------------------------
-// Unit Tests for the tdb.spec.js module.
-//
-// @module tdb.spec.js
+/// Unit Tests for the trivialdb.spec.js module.
+///
+/// @module
 // ---------------------------------------------------------------------------------------------------------------------
 
 var assert = require("assert");
-var trivialdb = require('../trivialdb');
-var JDB = require('../lib/tdb');
+var trivialdb = require('../src/trivialdb');
+var TDB = require('../src/lib/tdb').default;
+var TDBNamespace = require('../src/lib/namespace').default;
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -20,19 +15,19 @@ describe('TrivialDB', function()
 {
     describe('db()', function()
     {
-        it('returns a JDB instance', function()
+        it('returns a TDB instance', function()
         {
             var db = trivialdb.db("trivialdb_test", { writeToDisk: false });
-            assert(db instanceof JDB, "db is not an instance of JDB");
+            assert(db instanceof TDB, "db is not an instance of TDB");
         });
 
-        it('passes options to the JDB instance', function()
+        it('passes options to the TDB instance', function()
         {
             var db = trivialdb.db("trivialdb_test", { writeToDisk: false });
             assert.equal(db.options.writeToDisk, false);
         });
 
-        it('returns the same JDB instance if you request it multiple times', function()
+        it('returns the same TDB instance if you request it multiple times', function()
         {
             var db = trivialdb.db("trivialdb_test", { writeToDisk: false });
             var db2 = trivialdb.db("trivialdb_test");
@@ -41,17 +36,26 @@ describe('TrivialDB', function()
         });
     });
 
-    describe('defineModel()', function()
+    describe('namespace()', function()
     {
-        it('returns a custom model instance', function()
+        it('is aliased as \'ns\'', function()
         {
-            var ModelInst = trivialdb.defineModel('trivialdb_test', {
-                name: String
-            }, { writeToDisk: false });
+            var ns = trivialdb.ns("trivialdb_test");
+            assert(ns instanceof TDBNamespace, "ns is not an instance of TDBNamespace");
+        });
 
-            // This is the easiest way to test that it's the right constructor.
-            assert(typeof(ModelInst.get) == 'function');
-            assert(typeof(ModelInst.filter) == 'function');
+        it('returns a TDBNamespace instance', function()
+        {
+            var ns = trivialdb.namespace("trivialdb_test");
+            assert(ns instanceof TDBNamespace, "ns is not an instance of TDBNamespace");
+        });
+
+        it('returns the same TDBNamespace instance if you request it multiple times', function()
+        {
+            var ns = trivialdb.namespace("trivialdb_test");
+            var ns2 = trivialdb.namespace("trivialdb_test");
+
+            assert.equal(ns, ns2);
         });
     });
 });

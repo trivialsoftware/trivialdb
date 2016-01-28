@@ -4,8 +4,9 @@
 // @module horrible_example.js
 //----------------------------------------------------------------------------------------------------------------------
 
+var Promise = require('bluebird');
 var util = require('util');
-var trivialdb = require('../trivialdb');
+var trivialdb = require('../src/trivialdb');
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -20,57 +21,70 @@ function pprint(obj)
 var db = trivialdb.db('example', { writeToDisk: false });
 
 // Create some new keys
-var hammerID, horribleID, moistID, pennyID;
-db.store({ name: "Captain Hammer", role: 'hero', nemeses: [] })
-    .then(function(id)
+var hammerID, horribleID, moistID, bhSingerID, pennyID;
+Promise.resolve()
+    .then(() =>
     {
-        hammerID = id;
-        return db.store({name: "Dr. Horrible", role: 'villain', nemeses: []});
+        return Promise.join(
+            db.save({ name: "Captain Hammer", role: 'hero', nemeses: [] }).then((id) => { hammerID = id; }),
+            db.save({ name: "Dr. Horrible", role: 'villain', nemeses: [] }).then((id) => { horribleID = id; }),
+            db.save({ name: "Moist", role: 'henchman', nemeses: [] }).then((id) => { moistID = id; }),
+            db.save({ name: "Bad Horse Singer", role: 'henchman', nemeses: [] }).then((id) => { bhSingerID = id; }),
+            db.save({ name: "Penny", role: 'love interest', nemeses: [] }).then((id) => { pennyID = id; })
+        );
     })
-    .then(function(id)
+    .then(() =>
     {
-        horribleID = id;
-        return db.store({ name: "Moist", role: 'henchman', nemeses: [] });
-    })
-    .then(function(id)
-    {
-        moistID = id;
-        return db.store({ name: "Penny", role: 'love interest', nemeses: []});
-    })
-    .then(function(id)
-    {
-        pennyID = id;
-
         // We've finished adding values, so print out the database:
         console.log('\n[Step 1] db.values:\n%s', pprint(db.values));
     })
-    .then(function()
+    .then(() =>
     {
         // Update some values
-        return db.merge(hammerID, { nemeses: [horribleID], loveInterest: pennyID });
+        var hammer = db.get(hammerID);
+        hammer.nemeses = [horribleID];
+        hammer.loveInterest = pennyID;
+
+        return db.save(hammer);
     })
-    .then(function()
+    .then(() =>
     {
         // Update some values
-        return db.merge(horribleID, { nemeses: [hammerID], loveInterest: pennyID });
+        var horrible = db.get(horribleID);
+        horrible.nemeses = [hammerID];
+        horrible.loveInterest = pennyID;
+        return db.save(horrible);
     })
-    .then(function()
+    .then(() =>
+    {
+        // Update some values
+        var moist = db.get(moistID);
+        moist.henchesFor = horribleID;
+        return db.save(moist);
+    })
+    .then(() =>
     {
         // We've finished updating values, so print out the database:
         console.log('\n[Step 2] db.values:\n%s', pprint(db.values));
     })
-    .then(function()
+    .then(() =>
     {
         // Find everyone for whom Penny is a love interest
-        return db.filter(function(key, value)
-        {
-            return value.loveInterest == pennyID;
-        });
-    })
-    .then(function(lovesPenny)
-    {
-        // Finally, print out everyone who loves Penny
+        var lovesPenny = db.filter({ loveInterest: pennyID });
+
+        // Print out everyone who loves Penny
         console.log('\n[Step 3] people who love Penny:\n%s', pprint(lovesPenny));
+    })
+    .then(() =>
+    {
+        // Find every henchman who henches for Dr. Horrible
+        var horribleHenches = db.query()
+            .filter({ role: 'henchman' })
+            .filter({ henchesFor: horribleID })
+            .run();
+
+        // Print out everyone who loves Penny
+        console.log('\n[Step 3] Henchmen who hench for Dr. Horrible:\n%s', pprint(horribleHenches));
     });
 
 //----------------------------------------------------------------------------------------------------------------------
