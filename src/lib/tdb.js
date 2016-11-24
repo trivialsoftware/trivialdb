@@ -10,7 +10,7 @@ import { EventEmitter } from 'events';
 
 import _ from 'lodash';
 import base62 from 'base62';
-import uuid from 'node-uuid';
+import uuid from 'uuid';
 import Promise from 'bluebird';
 import _mkdirp from 'mkdirp';
 
