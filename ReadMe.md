@@ -234,18 +234,15 @@ will be returned. (This mirrors the direct use of objects in JavaScript.)
 #### Storing Values
 
 * Synchronous
-    * `set(value, expiration)` - Returns a generated key.
-    * `set(key, value, expiration)` - Returns `key`.
+    * `set(value)` - Returns a generated key.
+    * `set(key, value)` - Returns `key`.
 * Asynchronous
-    * `save(value, expiration)` - Returns a promise resolved with a generated key.
-    * `save(key, value, expiration)` - Returns a promise resolved with `key`.
+    * `save(value)` - Returns a promise resolved with a generated key.
+    * `save(key, value)` - Returns a promise resolved with `key`.
 
 ```javascript
 // Store a value
 const id = db.set({ name: 'foo' });
-
-// Store a value with an expiration of 1 second
-const id2 = db.set({ name: 'foo' }, Date.now() + 1000);
 
 // Store a value with a specific key
 db.set('foo', { name: 'foo' });
@@ -271,9 +268,6 @@ If you specify a key, it is up to you to ensure it's unique. TrivialDB will sile
 TrivialDb supports the `pk` option for setting a primary key. Keys are **always added to your object**, but with the 
 `pk` options, you can control what field it is stored under. (By default, it's `id`.)
 
-TrivialDB also support `expiration` on keys. You must pass in an expiration time as a unix timestamp. After that time
-TrivialDB will automatically delete the key. Doing another set with a different expiration will change the time.
-    
 #### Removing Values
 
 * Synchronous
