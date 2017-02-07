@@ -4,27 +4,27 @@
 // @module tdb.spec.js
 // ---------------------------------------------------------------------------------------------------------------------
 
-var fs = require('fs');
-var path = require('path');
-var assert = require("assert");
-var os = require('os');
+const fs = require('fs');
+const path = require('path');
+const assert = require("assert");
+const os = require('os');
 
-var _ = require('lodash');
-var Promise = require('bluebird');
+const _ = require('lodash');
+const Promise = require('bluebird');
 
-var TDB = require('../src/lib/tdb').default;
-var errors = require('../src/lib/errors').default;
+const TDB = require('../lib/tdb');
+const errors = require('../lib/errors');
 
 // ---------------------------------------------------------------------------------------------------------------------
 
 describe('TDB Instance', () =>
 {
-    var testDB = '{"cfvtjn3dzYLJzbbfKCcZsrTXDJw=": {"name":"Captain Hammer","role":"hero"},'
+    const testDB = '{"cfvtjn3dzYLJzbbfKCcZsrTXDJw=": {"name":"Captain Hammer","role":"hero"},'
     + '"1lT/bTHNj2G3abAf+OsPNaV2Sgw=":{"name":"Dr. Horrible","role": "villian"}}';
 
-    var rootPath = os.tmpdir();
+    const rootPath = os.tmpdir();
 
-    var db;
+    let db;
     beforeEach(() =>
     {
         db = new TDB("test", { writeToDisk: false, loadFromDisk: false });
@@ -34,7 +34,7 @@ describe('TDB Instance', () =>
     afterEach(() =>
     {
         // Clean the temp directory.
-        var files = fs.readdirSync(rootPath);
+        const files = fs.readdirSync(rootPath);
         files.forEach((file) =>
         {
             try { fs.unlinkSync(path.join(rootPath, file)); }
@@ -65,7 +65,7 @@ describe('TDB Instance', () =>
 
     it('writes changes to disk as a json file', () =>
     {
-        var testDBObj = JSON.parse(testDB);
+        const testDBObj = JSON.parse(testDB);
 
         db = new TDB("test_write", { rootPath: rootPath });
         db.values = testDBObj;
@@ -73,7 +73,7 @@ describe('TDB Instance', () =>
             .then(() =>
             {
                 // This both tests that it writes, and that the json files are following the correct naming convention.
-                var dbFile = fs.readFileSync(path.resolve(rootPath, 'test_write.json')).toString();
+                const dbFile = fs.readFileSync(path.resolve(rootPath, 'test_write.json')).toString();
 
                 assert.deepEqual(JSON.parse(dbFile), testDBObj);
             });
@@ -98,7 +98,7 @@ describe('TDB Instance', () =>
     {
         it('writeToDisk can be used to disable writing to disk', () =>
         {
-            var testDBObj = JSON.parse(testDB);
+            const testDBObj = JSON.parse(testDB);
 
             db = new TDB("test", { writeToDisk: false, rootPath: rootPath });
             db.values = testDBObj;
@@ -139,7 +139,7 @@ describe('TDB Instance', () =>
             // Check after the write should have hit
             setTimeout(() =>
             {
-                var jsonStr = fs.readFileSync(db.path).toString();
+                const jsonStr = fs.readFileSync(db.path).toString();
                 assert.deepEqual(JSON.parse(jsonStr), {'test-key':{test:true, id: 'test-key'}});
                 done();
             }, 60);
@@ -152,7 +152,7 @@ describe('TDB Instance', () =>
 
             setTimeout(() =>
             {
-                var jsonStr = fs.readFileSync(db.path).toString();
+                const jsonStr = fs.readFileSync(db.path).toString();
                 assert.equal(jsonStr, '{"test-key":{"test":true,"id":"test-key"}}');
                 done();
             }, 20);
@@ -205,7 +205,7 @@ describe('TDB Instance', () =>
 
         it('`set()` autogenerates a key when none is specified', () =>
         {
-            var key = db.set({ test: true });
+            const key = db.set({ test: true });
             assert(key in db.values, "The key '" + key + "' was not found.");
         });
 
@@ -268,21 +268,21 @@ describe('TDB Instance', () =>
         it('`get()` returns the value when passing in an existing key', () =>
         {
             db.values['test-key'] = { test: true };
-            var value = db.get('test-key');
+            const value = db.get('test-key');
             assert.deepEqual(value, { test: true });
         });
 
         it('`get()` returns undefined when passing in a nonexistent key', () =>
         {
-            var value = db.get('does-not-exist-key');
+            const value = db.get('does-not-exist-key');
             assert.equal(value, undefined);
         });
 
         it('`get()` returns a deeply cloned value', () =>
         {
-            var testVal = { test: { foo: 123, nested: { bar: 123 } } };
+            const testVal = { test: { foo: 123, nested: { bar: 123 } } };
             db.values['test-key'] = testVal;
-            var value = db.get('test-key');
+            const value = db.get('test-key');
 
             // Make sure the objects are not the same
             assert(value !== testVal);
@@ -301,7 +301,7 @@ describe('TDB Instance', () =>
         it('`load()` returns a promise', () =>
         {
             db.values['test-key'] = { test: true };
-            var promise = db.load('test-key');
+            const promise = db.load('test-key');
             assert(_.isFunction(promise.then), "`load().then` is not a function!");
         });
 
@@ -327,7 +327,7 @@ describe('TDB Instance', () =>
                 'additional-guy': { age: 11, name: "Additional Guy" }
             };
 
-            var ages = db.filter((value, key) =>
+            const ages = db.filter((value, key) =>
             {
                 return value.age > 30;
             });
@@ -344,7 +344,7 @@ describe('TDB Instance', () =>
                 'additional-guy': { age: 11, name: "Additional Guy" }
             };
 
-            var ages = db.filter({ age: 32 });
+            const ages = db.filter({ age: 32 });
 
             assert.deepEqual(ages, [{ age: 32, name: "Also Guy" }]);
         });
@@ -417,8 +417,8 @@ describe('TDB Instance', () =>
         it('returns a lodash chain object', () =>
         {
             // This might be a little brittle... but works for now.
-            var LodashWrapper = Object.getPrototypeOf(_()).constructor;
-            var values = db.query();
+            const LodashWrapper = Object.getPrototypeOf(_()).constructor;
+            const values = db.query();
 
             assert(values instanceof LodashWrapper);
         });
@@ -426,7 +426,7 @@ describe('TDB Instance', () =>
         it('returns a cloned version of the full database', () =>
         {
             db.values['test'] = { foo: 123 };
-            var values = db.query().value();
+            const values = db.query().value();
             assert(values !== db.values);
             assert.equal(values.test.foo, db.values.test.foo);
 
@@ -448,7 +448,7 @@ describe('TDB Instance', () =>
 
         it("expires keys at the given timeout", () =>
         {
-            var testObj = { foo: 123, id: 'test' };
+            const testObj = { foo: 123, id: 'test' };
             db.set('test', testObj, Date.now() + 10);
             assert.deepEqual(db.values['test'], testObj);
 
@@ -460,8 +460,8 @@ describe('TDB Instance', () =>
 
         it("supports multiple keys with the same expiration", () =>
         {
-            var testObj = { foo: 123 };
-            var exp = Date.now() + 10;
+            const testObj = { foo: 123 };
+            const exp = Date.now() + 10;
             db.set('test1', testObj, exp);
             db.set('test2', testObj, exp);
 
@@ -483,7 +483,7 @@ describe('TDB Instance', () =>
 
         it("supports multiple expirations, set in any order", () =>
         {
-            var testObj = { foo: 123 };
+            const testObj = { foo: 123 };
 
             db.set('test', testObj, Date.now() + 250);
             db.set('test1', testObj, Date.now() + 10);
@@ -516,7 +516,7 @@ describe('TDB Instance', () =>
 
         it("clears the timeout once there are no new expirations", () =>
         {
-            var testObj = { foo: 123, id: 'test' };
+            const testObj = { foo: 123, id: 'test' };
             db.set('test', testObj, Date.now() + 10);
             assert.deepEqual(db.values['test'], testObj);
 

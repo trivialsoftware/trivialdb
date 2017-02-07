@@ -8,5 +8,3 @@ node_modules
 # Jetbrains IDE project files
 .idea
 
-# Build files
-dist

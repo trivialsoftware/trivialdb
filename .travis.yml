@@ -6,7 +6,5 @@ language: node_js
 
 # Run tests against the latest version of node, and the latest LTS.
 node_js:
-  - 5
-  - 4.2
-  - 0.12
-  - 0.10
+  - 6
+  - node
