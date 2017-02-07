@@ -316,7 +316,7 @@ filtering all items in the database by the predicate you passed in.
 
 [filter]: https://lodash.com/docs#filter
 
-#### AdvancedQueries
+#### Advanced Queries
 
 * `query()` - Returns a [lodash chain][] object, wrapped around all values in the database.
 
@@ -332,6 +332,17 @@ This exposes a [lodash chain][] object, which allows you to run whatever lodash 
 database's values, so feel free to make any modifications you desire; you will not affect the data in the database.
 
 [lodash chain]: https://lodash.com/docs#_
+
+### Reload
+
+* `reload()` - Returns a promise resolved once the database has been reloaded from disk.
+
+If you need to reload your database for any reason (such as hand-edited JSON files), you can reload the database from
+disk with the `reload()` function. This is the same function that is used to load from disk initially.
+
+_Note:_ This will throw an exception on any database with `loadFromDisk: false`.
+
+_Note:_ This will completely throw away all values from in memory. If saving is not settled, changes may be lost.
 
 ### Direct Access
 
