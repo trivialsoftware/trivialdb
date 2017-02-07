@@ -5,15 +5,16 @@
 node_modules
 **.log
 
+# Yarn cruft
+yarn.lock
+
 # Jetbrains IDE project files
 .idea
 
 # Ignore source files
-.babelrc
+.editorconfig
 .eslintrc
 .gitignore
 *.yml
-Gruntfile.js
-src
 examples
 tests

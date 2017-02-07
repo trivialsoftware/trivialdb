@@ -1,10 +1,10 @@
 # TrivialDB
 
-[![Build Status](https://img.shields.io/travis/Morgul/trivialdb/master.svg)](https://travis-ci.org/Morgul/trivialdb)
+[![Build Status](https://img.shields.io/travis/trivialsoftware/trivialdb/master.svg)](https://travis-ci.org/trivialsoftware/trivialdb)
 [![npm Version](https://img.shields.io/npm/v/trivialdb.svg)](https://www.npmjs.com/package/trivialdb)
 ![npm](https://img.shields.io/npm/dm/trivialdb.svg)
-[![GitHub issues](https://img.shields.io/github/issues/Morgul/trivialdb.svg)](https://github.com/Morgul/trivialdb/issues)
-[![Donate $5](https://img.shields.io/badge/Donate-$5-yellow.svg)](https://paypal.me/morgul/5)
+[![GitHub issues](https://img.shields.io/github/issues/trivialsoftware/trivialdb.svg)](https://github.com/trivialsoftware/trivialdb/issues)
+[![Donate $5](https://img.shields.io/badge/Donate-%245-yellow.svg)](https://paypal.me/morgul/5)
 
 TrivialDB is a lightweight key/value json storage with persistence. Conceptually, it's just a thin lodash wrapper around
 plain javascript objects; with the added bonus of doing versioned asynchronous writes on changes. Its on disk format is 
@@ -15,17 +15,32 @@ edits not just possible, but simple.
 
 TrivialDB is intended for simple storage needs. It's in-process, small, and very, _very_ fast. It takes almost nothing 
 to get up and running with it, and it gives you an impressive amount of power, thanks to [lodash chaining][]. I've found 
-its a great fit for any personal project that needs to persist data.
+its a great fit for any personal project that needs to persist data. If you find yourself wanting to work with raw json 
+files, it's a rather large improvement on writing your own loading/saving/querying logic. 
+
+The one caveat to keep in mind is this: _every database your work with is stored in memory_. Since TrivialDB is 
+in-pricess, you might run into the memory limits of node; on a 64 bit machine, this is 1.76GB by default. (You can 
+increase this via `--max_old_space_size=<size>`.) In practice, however, this isn't actually that much of a limitation. 
+Generally, you're working with a large amount of your data in memory anyway; your data sets can get relatively large 
+before you even need to worry about this.
+
+In fact, the very popular nosql database [Redis][redis] is in-memory. In their FAQ, they have this to say:
+
+> In the past the Redis developers experimented with Virtual Memory and other systems in order to allow larger than RAM 
+datasets, but after all we are very happy if we can do one thing well: data served from memory, disk used for storage. 
+So for now there are no plans to create an on disk backend for Redis. Most of what Redis is, after all, is a direct 
+result of its current design.
+
+In practice, I use TrivialDB to power a wiki that has thousands of printed pages worth of text, and the node process 
+uses around 200mb, with the json being around 1mb on disk. For things like a blog, or user database, or session storage,
+or a preference system, TrivialDB will work for a long time before you need to move to something out of process.
 
 The one caveat to keep in mind is this: _every database you work with is stored in memory_. Since TrivialDB is 
 in-process, you might run into the memory limits of node; (on versions before 0.12 there's a 1.4GB - 1.7GB limit). 
 However, this isn't actually that much of a limitation. Generally, you're working with a large amount of your 
 data in memory anyway; your data sets can get relatively large before you even need to worry about this.
 
-In practice, I use TrivialDB to power a wiki that has thousands of printed pages worth of text, and the node process 
-uses around 200mb, with the json being around 1mb on disk. For things like a blog, or user database, or session storage,
-or a preference system, TrivialDB will work for a long time before you need to move to something out of process.
-
+[redis]: https://redis.io
 [lodash chaining]: https://lodash.com/docs#_
 
 ## Lodash Shoutout
@@ -54,20 +69,20 @@ Database objects are the interesting ones, with the main API you will be working
 
 ### Creating a namespace
 
-* `ns(name, options)` - Returns a `TDBNamespace` object.
+* `ns(name, options)` - creates or retrieves a `TDBNamespace` object.
 	* _alias: 'namespace'_
 		
 ```javascript
-var trivialdb = require('trivialdb');
+const trivialdb = require('trivialdb');
 
 // Create a namespace
-var ns = triviadb.ns('test-ns');
+const ns1 = triviadb.ns('test-ns');
 
 // Create a namespace with some options
-var ns = triviadb.ns('test-ns', { dbPath: 'server/db' });
+const ns2 = triviadb.ns('test-ns', { dbPath: 'server/db' });
 
 // Create a database inside that namespace
-var db = ns.db('test', { writeToDisk: false });
+const db = ns1.db('test', { writeToDisk: false });
 ```
 
 Once you've created your namespace object, you can create or retrieve database instances from it, just like you can the 
@@ -79,7 +94,7 @@ The options supported by the `ns` call are:
 
 ```javascript
 {
-    basePath: "..."	// The base path for all other paths to be relative to. (Defaults to the application's base directory.)
+    basePath: "...",	// The base path for all other paths to be relative to. (Defaults to the application's base directory.)
     dbPath: "..."	// The path, relative to `basePath` to the root database folder. (Defaults to 'db'.)
 }
 ```
@@ -88,17 +103,17 @@ If you call `ns` passing in the name of an existing namespace, any options passe
 
 ### Creating a database
 
-* `db(name, options)` - Returns a database instance.
+* `db(name, options)` - creates or retrieves a database instance.
 	* _alias: 'database'_
 
 ```javascript
-var trivialdb = require('trivialdb');
+const trivialdb = require('trivialdb');
 
 // Open or create a database
-var db = trivialdb.db('some_db');
+const db = trivialdb.db('some_db');
 
 // Open or create a database, with options
-var db = trivialdb.db('some_db', { writeToDisk: false });
+const db = trivialdb.db('some_db', { writeToDisk: false });
 ```
 
 By default, when a new database is created, it will look for a file named `'some_db.json'` inside the database folder.
@@ -164,7 +179,7 @@ function slugify(article)
 } // end slugify
 
 // Declare a new database, using the slugify function above.
-db = trivialdb.db("articles", { writeToDisk: false, idFunc: slugify });
+const db = trivialdb.db("articles", { writeToDisk: false, idFunc: slugify });
 
 // Now, we save an object
 db.save({ name: "TrivialDB: now with id generation functions!", body: "Read the title, dude." })
@@ -203,7 +218,7 @@ future, it may return stale values. As such, it should be considered a dirty rea
 	
 ```javascript
 // Get an object synchronously
-var val = db.get('my_key');
+const val = db.get('my_key');
 
 // Get an object asynchronously
 db.load('my_key')
@@ -219,18 +234,15 @@ will be returned. (This mirrors the direct use of objects in JavaScript.)
 #### Storing Values
 
 * Synchronous
-    * `set(value, expiration)` - Returns a generated key.
-    * `set(key, value, expiration)` - Returns `key`.
+    * `set(value)` - Returns a generated key.
+    * `set(key, value)` - Returns `key`.
 * Asynchronous
-    * `save(value, expiration)` - Returns a promise resolved with a generated key.
-    * `save(key, value, expiration)` - Returns a promise resolved with `key`.
+    * `save(value)` - Returns a promise resolved with a generated key.
+    * `save(key, value)` - Returns a promise resolved with `key`.
 
 ```javascript
 // Store a value
-var id = db.set({ name: 'foo' });
-
-// Store a value with an expiration of 1 second
-var id = db.set({ name: 'foo', Date.now() + 1000 });
+const id = db.set({ name: 'foo' });
 
 // Store a value with a specific key
 db.set('foo', { name: 'foo' });
@@ -256,9 +268,6 @@ If you specify a key, it is up to you to ensure it's unique. TrivialDB will sile
 TrivialDb supports the `pk` option for setting a primary key. Keys are **always added to your object**, but with the 
 `pk` options, you can control what field it is stored under. (By default, it's `id`.)
 
-TrivialDB also support `expiration` on keys. You must pass in an expiration time as a unix timestamp. After that time
-TrivialDB will automatically delete the key. Doing another set with a different expiration will change the time.
-    
 #### Removing Values
 
 * Synchronous
@@ -286,10 +295,10 @@ efficient even on large datasets.
 
 ```javascript
 // Simple object filter
-var vals = db.filter({ foo: 'bar!' });
+const vals = db.filter({ foo: 'bar!' });
 
 // Function filter
-var vals = db.filter(function(value, key)
+const vals = db.filter(function(value, key)
 {
     // Decide if you want this object
     return value.foo === 'bar!';
@@ -301,22 +310,37 @@ filtering all items in the database by the predicate you passed in.
 
 [filter]: https://lodash.com/docs#filter
 
-#### AdvancedQueries
+#### Advanced Queries
 
 * `query()` - Returns a [lodash chain][] object, wrapped around all values in the database.
 
 ```javascript
 // Query for all admins, sorting by created date
-var items = db.query()
+const items = db.query()
 	.filter({ admin: true })
 	.sortBy('date')
-	.value();
+	.run();
 ```
 
 This exposes a [lodash chain][] object, which allows you to run whatever lodash queries you want. It clones the 
 database's values, so feel free to make any modifications you desire; you will not affect the data in the database.
 
+_Note:_ As you can see from our example, we exectute the query with `.run()`. This alias was removed in Lodash 4. We
+jump through a few hoops to extend the prototype of the individual chain object to add this back in there; this should
+not leak into the global lodash module. Why did we do this? Because I like the semantics of `.run()`, dammit.
+
 [lodash chain]: https://lodash.com/docs#_
+
+### Reload
+
+* `reload()` - Returns a promise resolved once the database has been reloaded from disk.
+
+If you need to reload your database for any reason (such as hand-edited JSON files), you can reload the database from
+disk with the `reload()` function. This is the same function that is used to load from disk initially.
+
+_Note:_ This will throw an exception on any database with `loadFromDisk: false`.
+
+_Note:_ This will completely throw away all values from in memory. If saving is not settled, changes may be lost.
 
 ### Direct Access
 
@@ -334,8 +358,8 @@ db.values['foobar'] = { test: "something" };
 db.sync();
 ```
 
-The `sync` function returns a promise that is resolved once the database has 'settled', as in, there are not more
-scheduled writes. Because of this behavior, you should consider whether or not you want to wait on it's promise. Under
+The `sync` function returns a promise that is resolved once the database has 'settled', as in, there are no more
+scheduled writes. Because of this behavior, you should consider whether or not you want to wait on its promise. Under
 high load, (or with a high `writeDelay`) it's possible for a `sync` promise's resolution to be considerably delayed.
 
 ```javascript
@@ -370,7 +394,7 @@ can of course take the code and use it in your own projects.
 
 ## Donations
 
-[![Donate $5](https://img.shields.io/badge/Donate-$5-yellow.svg)](https://paypal.me/morgul/5)
+[![Donate $5](https://img.shields.io/badge/Donate-%245-yellow.svg)](https://paypal.me/morgul/5)
 
-I accept donations for my hard work. While this is not my primary means of income, by any stretch, I would not mind a 
-few bucks for a job well done. 
+I accept donations for my work. While this is not my primary means of income, by any stretch, I would not mind a 
+few bucks if you find the software useful. 

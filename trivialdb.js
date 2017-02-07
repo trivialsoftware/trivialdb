@@ -4,8 +4,8 @@
 // @module trivialdb.js
 //----------------------------------------------------------------------------------------------------------------------
 
-import TDBNamespace from './lib/namespace';
-import errors from './lib/errors';
+const TDBNamespace = require('./lib/namespace');
+const errors = require('./lib/errors');
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -18,7 +18,7 @@ if(process.$$triviadb)
 }
 else
 {
-    var namespaces = {};
+    const namespaces = {};
 
     /**
      * Create or retrieve a namespace object.
@@ -30,7 +30,7 @@ else
      */
     function ns(name, options)
     {
-        var namespace = namespaces[name] || new TDBNamespace(name, options);
+        const namespace = namespaces[name] || new TDBNamespace(name, options);
         namespaces[name] = namespace;
 
         return namespace;
@@ -55,6 +55,8 @@ else
     {
         return ns('').db(name, options);
     } // end db
+
+    //------------------------------------------------------------------------------------------------------------------
 
     // Set the global import
     process.$$triviadb = (module.exports = {

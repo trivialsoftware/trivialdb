@@ -4,17 +4,17 @@
 // @module
 // ---------------------------------------------------------------------------------------------------------------------
 
-var path = require('path');
-var assert = require("assert");
+const path = require('path');
+const assert = require("assert");
 
-var TDB = require('../src/lib/tdb').default;
-var TDBNamespace = require('../src/lib/namespace').default;
+const TDB = require('../lib/tdb');
+const TDBNamespace = require('../lib/namespace');
 
 // ---------------------------------------------------------------------------------------------------------------------
 
 describe('TDBNamespace Instance', () =>
 {
-    var namespace;
+    let namespace;
 
     beforeEach(() =>
     {
@@ -30,7 +30,7 @@ describe('TDBNamespace Instance', () =>
     {
         it('returns a TDB instance', () =>
         {
-            var db = namespace.db("test", { writeToDisk: false });
+            const db = namespace.db("test", { writeToDisk: false });
             assert(db instanceof TDB, "db is not an instance of TDB");
         });
     });
