@@ -12,7 +12,7 @@ const trivialdb = require('../trivialdb');
 
 function pprint(obj)
 {
-    return util.inspect(obj, {colors: true, depth: null});
+    return util.inspect(obj, { colors: true, depth: null });
 } // end pprint
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -81,7 +81,7 @@ Promise.resolve()
         const horribleHenches = db.query()
             .filter({ role: 'henchman' })
             .filter({ henchesFor: horribleID })
-            .run();
+            .value();
 
         // Print out everyone who loves Penny
         console.log('\n[Step 3] Henchmen who hench for Dr. Horrible:\n%s', pprint(horribleHenches));
