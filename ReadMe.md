@@ -360,8 +360,8 @@ db.values['foobar'] = { test: "something" };
 db.sync();
 ```
 
-The `sync` function returns a promise that is resolved once the database has 'settled', as in, there are not more
-scheduled writes. Because of this behavior, you should consider whether or not you want to wait on it's promise. Under
+The `sync` function returns a promise that is resolved once the database has 'settled', as in, there are no more
+scheduled writes. Because of this behavior, you should consider whether or not you want to wait on its promise. Under
 high load, (or with a high `writeDelay`) it's possible for a `sync` promise's resolution to be considerably delayed.
 
 ```javascript
