@@ -394,7 +394,7 @@ can of course take the code and use it in your own projects.
 
 ## Donations
 
-[![Donate $5](https://img.shields.io/badge/Donate-$5-yellow.svg)](https://paypal.me/morgul/5)
+[![Donate $5](https://img.shields.io/badge/Donate-%245-yellow.svg)](https://paypal.me/morgul/5)
 
 I accept donations for my work. While this is not my primary means of income, by any stretch, I would not mind a 
 few bucks if you find the software useful. 
