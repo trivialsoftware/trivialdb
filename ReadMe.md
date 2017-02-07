@@ -4,7 +4,7 @@
 [![npm Version](https://img.shields.io/npm/v/trivialdb.svg)](https://www.npmjs.com/package/trivialdb)
 ![npm](https://img.shields.io/npm/dm/trivialdb.svg)
 [![GitHub issues](https://img.shields.io/github/issues/trivialsoftware/trivialdb.svg)](https://github.com/trivialsoftware/trivialdb/issues)
-[![Donate $5](https://img.shields.io/badge/Donate-$5-yellow.svg)](https://paypal.me/morgul/5)
+[![Donate $5](https://img.shields.io/badge/Donate-%245-yellow.svg)](https://paypal.me/morgul/5)
 
 TrivialDB is a lightweight key/value json storage with persistence. Conceptually, it's just a thin lodash wrapper around
 plain javascript objects; with the added bonus of doing versioned asynchronous writes on changes. Its on disk format is 
