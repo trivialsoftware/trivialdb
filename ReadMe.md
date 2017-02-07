@@ -319,11 +319,15 @@ filtering all items in the database by the predicate you passed in.
 const items = db.query()
 	.filter({ admin: true })
 	.sortBy('date')
-	.value();
+	.run();
 ```
 
 This exposes a [lodash chain][] object, which allows you to run whatever lodash queries you want. It clones the 
 database's values, so feel free to make any modifications you desire; you will not affect the data in the database.
+
+_Note:_ As you can see from our example, we exectute the query with `.run()`. This alias was removed in Lodash 4. We
+jump through a few hoops to extend the prototype of the individual chain object to add this back in there; this should
+not leak into the global lodash module. Why did we do this? Because I like the semantics of `.run()`, dammit.
 
 [lodash chain]: https://lodash.com/docs#_
 

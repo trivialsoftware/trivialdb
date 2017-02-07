@@ -81,7 +81,7 @@ Promise.resolve()
         const horribleHenches = db.query()
             .filter({ role: 'henchman' })
             .filter({ henchesFor: horribleID })
-            .value();
+            .run();
 
         // Print out everyone who loves Penny
         console.log('\n[Step 3] Henchmen who hench for Dr. Horrible:\n%s', pprint(horribleHenches));

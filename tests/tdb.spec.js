@@ -417,16 +417,16 @@ describe('TDB Instance', () =>
         it('returns a lodash chain object', () =>
         {
             // This might be a little brittle... but works for now.
-            const LodashWrapper = Object.getPrototypeOf(_()).constructor;
-            const values = db.query();
+            const lodashConstructorName = Object.getPrototypeOf(_()).constructor.name;
+            const queryConstructorName = Object.getPrototypeOf(db.query()).constructor.name;
 
-            assert(values instanceof LodashWrapper);
+            assert.equal(lodashConstructorName, queryConstructorName);
         });
 
         it('returns a cloned version of the full database', () =>
         {
             db.values['test'] = { foo: 123 };
-            const values = db.query().value();
+            const values = db.query().run();
             assert(values !== db.values);
             assert.equal(values.test.foo, db.values.test.foo);
 
@@ -435,6 +435,34 @@ describe('TDB Instance', () =>
 
             // Ensure the db is not modified
             assert.equal(db.values.foo, undefined);
+        });
+
+        it('executes the query with either `.run()` or `.value()`', () =>
+        {
+            db.values = {
+                'some-guy': { age: 36, name: "Some Guy", id: 'some-guy' },
+                'also-guy': { age: 32, name: "Also Guy", id: 'also-guy' },
+                'merv': { age: 32, name: "Merv Guy", id: 'merv' }
+            };
+
+            const query = db.query().filter({ age: 32 });
+            assert.equal(query.value, query.run);
+
+            const values = db.query().filter({ age: 32 }).run();
+            assert(values.length == 2);
+
+            const values2 = db.query().filter({ age: 32 }).value();
+            assert(values2.length == 2);
+        });
+
+        it('does not leak `.run` into the global lodash prototype', () =>
+        {
+            db.values['test'] = { foo: 123 };
+            const query = db.query();
+
+            assert(_.isFunction(query.run), "Missing run function.");
+            assert(!_.isFunction(require('lodash').prototype.run), "Pollution of the lodash prototype detected.");
+            assert(!_.isFunction(_(['foo']).run), "Pollution of the chain prototype detected.");
         });
     });
 
