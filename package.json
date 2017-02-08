@@ -2,7 +2,7 @@
   "name": "trivialdb",
   "version": "2.2.0",
   "description": "A lightweight key/value json storage with persistence.",
-  "main": "./dist/trivialdb.js",
+  "main": "trivialdb.js",
   "scripts": {
     "test": "./node_modules/.bin/mocha tests --reporter spec --recursive"
   },
