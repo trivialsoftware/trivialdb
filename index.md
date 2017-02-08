@@ -1,310 +1,128 @@
-# JBase
+# TrivialDB
 
-[![Build Status](https://travis-ci.org/Morgul/jbase.svg?branch=master)](https://travis-ci.org/Morgul/jbase)
+[![Build Status](https://img.shields.io/travis/trivialsoftware/trivialdb/master.svg)](https://travis-ci.org/trivialsoftware/trivialdb)
+[![npm Version](https://img.shields.io/npm/v/trivialdb.svg)](https://www.npmjs.com/package/trivialdb)
+![npm](https://img.shields.io/npm/dm/trivialdb.svg)
+[![GitHub issues](https://img.shields.io/github/issues/trivialsoftware/trivialdb.svg)](https://github.com/trivialsoftware/trivialdb/issues)
+[![Donate $5](https://img.shields.io/badge/Donate-%245-yellow.svg)](https://paypal.me/morgul/5)
 
-A lightweight key/value json storage with persistence. Conceptually, it's just a thin API wrapper around plain javascript
-objects; with the added bonus of doing throttled asynchronous writes on changes. Its on disk format is simply "json on
-disk"; basically the jsonified version of the plain object, saved to a file on disk. This makes making hand edits not
-just possible, but simple.
+TrivialDB is a lightweight key/value json storage with persistence. Conceptually, it's just a thin lodash wrapper around
+plain javascript objects; with the added bonus of doing versioned asynchronous writes on changes. Its on disk format is 
+simply "json on disk"; basically the json version of the plain object, saved to a file on disk. This makes making hand 
+edits not just possible, but simple.
 
 ## Use Case
 
-JBase is intended for simple storage needs. It's in-process, small, and very fast for small data sets. It takes almost
-nothing to get up and going with it, and it has just enough features to make it worth while. Personally I've found its
-a great fit for a development database for websites, or even to power a simple blog.
+TrivialDB is intended for simple storage needs. It's in-process, small, and very, _very_ fast. It takes almost nothing 
+to get up and running with it, and it gives you an impressive amount of power, thanks to [lodash chaining][]. I've found 
+its a great fit for any personal project that needs to persist data. If you find yourself wanting to work with raw json 
+files, it's a rather large improvement on writing your own loading/saving/querying logic. 
 
-The one caveat to keep in mind is this: _every database your work with is stored in memory_. Since JBase is in-process,
-you might run into the memory limit of node; on versions before 0.11+ there's a 1.4GB limit. If you try and load a
-database of all your cat pictures, you might run out of memory pretty quickly.
+The one caveat to keep in mind is this: _every database your work with is stored in memory_. Since TrivialDB is 
+in-pricess, you might run into the memory limits of node; on a 64 bit machine, this is 1.76GB by default. (You can 
+increase this via `--max_old_space_size=<size>`.) In practice, however, this isn't actually that much of a limitation. 
+Generally, you're working with a large amount of your data in memory anyway; your data sets can get relatively large 
+before you even need to worry about this.
 
-That being said, this isn't actually much of a limitation. Generally, you're working with a large amount of your data
-in memory anyway; your data sets can get relatively large before you even need to worry about this.
+In fact, the very popular nosql database [Redis][redis] is in-memory. In their FAQ, they have this to say:
+
+> In the past the Redis developers experimented with Virtual Memory and other systems in order to allow larger than RAM 
+datasets, but after all we are very happy if we can do one thing well: data served from memory, disk used for storage. 
+So for now there are no plans to create an on disk backend for Redis. Most of what Redis is, after all, is a direct 
+result of its current design.
+
+In practice, I use TrivialDB to power a wiki that has thousands of printed pages worth of text, and the node process 
+uses around 200mb, with the json being around 1mb on disk. For things like a blog, or user database, or session storage,
+or a preference system, TrivialDB will work for a long time before you need to move to something out of process.
+
+The one caveat to keep in mind is this: _every database you work with is stored in memory_. Since TrivialDB is 
+in-process, you might run into the memory limits of node; (on versions before 0.12 there's a 1.4GB - 1.7GB limit). 
+However, this isn't actually that much of a limitation. Generally, you're working with a large amount of your 
+data in memory anyway; your data sets can get relatively large before you even need to worry about this.
+
+[redis]: https://redis.io
+[lodash chaining]: https://lodash.com/docs#_
+
+## Lodash Shoutout
+
+This entire project is made possible by the [lodash][] project. If it wasn't for their hard work and the effort they put 
+into building an amazing API, TrivialDB would not exist.
+
+[lodash]: https://lodash.com
 
 ## Installation
 
 Simply install with npm:
 
 ```bash
-$ npm install --save jbase
+$ npm install --save trivialdb
 ```
 
-## API
+## TrivialDB API
 
-The JBase API is inspired (spiritually) by [RethinkDB](http://rethinkdb.com/) and it's node.js ORM,
-[thinky](http://thinky.io/). These are two great projects, and once you outgrow JBase, I strongly encourage you to
-check them out!
+There are two concepts to remember with TrivialDB: namespaces and databases. A 'namespace' is, as it implies, just an
+isolated environment with a name. Inside a namespace, all _database_ names must be unique. So, if you want to have to 
+independent 'foobar' databases, you will need to have them in different namespaces.
 
-There are two different APIs, the low-level 'Database' API, and the higher level 'Model' API. Previous versions of JBase
-only had the Database API, so if you want to use what you're used to, feel free to keep using it. (You can even use both
-together in various ways.)
+Databases, on the other hand, are the heart and soul of TrivialDB. As the name implies, they hold all your data. 
+Database objects are the interesting ones, with the main API you will be working with in TrivialDB.
 
-### Model API
+### Creating a namespace
 
-The model API was added to make JBase feel much more like the larger ORM style solutions out there. I'm a very big fan
-of working with models as opposed to direct database calls, and I've taken some of my favorite features and baked them
-directly into JBase. Here's the current feature list:
-
-* Model validation
-* Simple model definitions
-* Models serialize as JSON objects
-* Get & Filter functions that return model instances
-* Automatic syncing of database changes to Model instances
-* Manual syncing of Model instances with the database
-
-Don't worry, you are not required to use the Model API, or even know it's there.
-
-#### Defining a model
-
-* `defineModel(databaseName, modelDefinition, databaseOptions)` - Returns a `JDBModel`.
-
-Defining a model in JBase is very simple. Models and databases have a one to one relationship, so you can think of the
-`databaseName` as the name of the model, though they don't have to have an relation to each other.
-
-_Note_: You will need to save the return value of `defineModel` and use that for querying or creating new instances.
-
+* `ns(name, options)` - creates or retrieves a `TDBNamespace` object.
+	* _alias: 'namespace'_
+		
 ```javascript
+const trivialdb = require('trivialdb');
 
-// Define a user model
-var User = jbase.defineModel('users', {
-    name: { type: String, required: true },
-    age: Number,
-    admin: { type: Boolean, required: true, default: false }
-});
+// Create a namespace
+const ns1 = triviadb.ns('test-ns');
 
-// Define an in-memory only model
-var Session = jbase.defineModel('sessions', {
-    userID: { type: String, required: true }
-}, { writeToDisk: false });
+// Create a namespace with some options
+const ns2 = triviadb.ns('test-ns', { dbPath: 'server/db' });
+
+// Create a database inside that namespace
+const db = ns1.db('test', { writeToDisk: false });
 ```
 
-##### Type Definition Object
+Once you've created your namespace object, you can create or retrieve database instances from it, just like you can the 
+main TrivialDB module.
 
-The model definition is a simple object where the value is either a javascript type (String, Boolean, Number, etc.), or
-a type definition object. The supported options are:
+##### Options
 
-* `type` - Required. This must be a javascript type (String, Boolean, Number, etc).
-* `required` - Optional. If false (the default), null and undefined are allowed values for this field.
-* `default` - Optional. A value to default the field to. (This can easily be overwritten simply by assigning to the
-field.)
-
-#### Creating a Model
-
-To create a model, you simply create a new instance of the return value of `defineModel`, optionally passing in an
-option to populate the model with.
+The options supported by the `ns` call are:
 
 ```javascript
-// Create a regular user
-var user = new User({ name: "Some Person", age: 23 });
-```
-
-#### Updating a model
-
-Updating a model is as simple as modifying the model instance, and then calling save.
-
-```javascript
-// Create a regular user
-var user = new User({ name: "Some Person", age: 23 });
-
-// Make the user an admin
-user.admin = true;
-
-// Save the user
-user.save();
-```
-
-#### Validating a Model
-
-* `model.validate()` - Returns a promise that either resolves, or rejects with a `ValidationError`.
-
-All model instances have a `validate` function, which you can use to check to make sure the model is valid. When there
-is a validation error, you will get a `ValidationError` object with a `key` property that indicates the key that failed
-validation. You can catch this error using `.catch`
-
-Currently, we only validate based on type, or the type definition object's options.
-
-```javascript
-// Create a regular user
-var user = new User({ name: "Some Person", age: 23 });
-
-// Make the user an admin
-user.admin = true;
-
-// This will resolve correctly.
-user.validate().then(function()
 {
-    // We get here.
-});
-
-// Set the admin field to an invalid type
-user.admin = 'not valid';
-
-// This will throw an error.
-user.validate()
-    .then(function()
-    {
-        // We don't get here.
-    })
-    .catch(jbase.errors.ValidationError, function()
-    {
-        // We catch the error, and handle it here.
-    });
+    basePath: "...",	// The base path for all other paths to be relative to. (Defaults to the application's base directory.)
+    dbPath: "..."	// The path, relative to `basePath` to the root database folder. (Defaults to 'db'.)
+}
 ```
 
-#### Saving a Model
+If you call `ns` passing in the name of an existing namespace, any options passed will be ignored.
 
-* `model.save(skipValidation)` - Returns a promise that either resolves, or rejects with an error.
+### Creating a database
 
-Saving a model is as simple as calling `save`. It first calls `validate`, which means that it may throw a
-`ValidationError`.
-
-```javascript
-// Create a regular user
-var user = new User({ name: "Some Person", age: 23 });
-
-// Make the user an admin
-user.admin = true;
-
-// Save the user
-user.save()
-    .then(function()
-    {
-        // Saved!
-    });
-```
-
-#### Syncing
-
-Normally, in an ORM, if you either create a new model instance, or get a model instance somehow, and something else
-changes the database, your model instance is out of date and doesn't get those changes. However, because of the nature
-of JBase, it was very easy to make the models smart enough to update themselves whenever something changes in the
-database.
-
-That being said, there is an issue of how do we merge your unsaved changes when something else has updated the database?
-The design we've chosen is that whenever you model is dirty (`model.$dirty` is true), we ignore the `sync` event. You
-can still manually sync the object.
-
-##### Manual Syncing
-
-* `model.sync(force)` - returns a promise that resolves once the sync has completed.
-
-If you want to sync your model instance (because you manually updated the database, for example), you can simply call
-`sync`. However, if your model is dirty, you will need to force the sync by passing `true` to the `sync` function.
+* `db(name, options)` - creates or retrieves a database instance.
+	* _alias: 'database'_
 
 ```javascript
-// Create a regular user
-var user = new User({ name: "Some Person", age: 23 });
+const trivialdb = require('trivialdb');
 
-// Make the user an admin
-user.admin = true;
-
-// Force a sync
-user.sync(true)
-    .then(function()
-    {
-        // user.admin is false here.
-    });
-```
-
-Keep in mind, when you force a sync, _all changes to the model instance will be lost_.
-
-#### Getting a Model by ID
-
-* `Model.get(modelID)` = returns a promise that either resolves with a model instance, ore rejects with a
-`DocumentNotFound` error.
-
-You can easily get model instances by id. Simply call `Model.get` and pass in the id you're looking for. If the id does
-not exist, the promise will be rejected with a `DocumentNotFound` error. You can easily test for this, and handle it
-using `.catch`.
-
-```javascript
-// Get an existing id
-User.get('existing-id')
-    .then(function(user)
-    {
-        // Work with user here
-    });
-
-// Get a non-existent id
-User.get('existing-id')
-    .catch(jbase.errors.DocumentNotFound, function(error)
-    {
-        // Handle not found case
-    });
-```
-
-#### Filtering models
-
-* `Model.filter(filter)` - returns a promise that resolves to a list, or an error.
-
-Instead, if you want to get a list of possible values, you should use `filter`. Just like the Database API function of
-the same name, we support filter functions, `_.pluck` and `_.where` style filters. The results are _always_ as list, so
-if nothing matched your filter, you will get back an empty list.
-
-```javascript
-// Get a list of admins
-User.filter({ admin: true })
-    .then(function(admins)
-    {
-        // Work with the list of admins.
-    });
-```
-
-#### Working with the database
-
-You can work with the database object for a particular model by using the `$$db` object. While I don't recommend doing
-things this way, should you need it, you can use it.
-
-### Database API
-
-This is the API that previous versions of JBase pioneered. It's relatively low-level, and if that's how you'd rather
-work with your database, that's fine. It is still the primary focus of JBase.
-
-#### **New in 1.0.0**
-
-The Database API has recently changed. As I've been building projects, I've discovered that Promise-based APIs are both elegant
-and incredibly convenient. I have opted to make the almost entire API promise-based. This has a small performance hit on
-individual operations, however, it also makes all calls asynchronous, which helps with JBase's ability to handle load.
-
-If you do not like promises, or disagree with this change, then I recommend using
-[v0.9.0](https://github.com/Morgul/jbase/releases/tag/v0.9.0).
-
-##### Promises
-
-Because of the change to promises, JBase now exposes our internal Promise object as `jbase.Promise`, so you can
-leverage it  if you want to. (We use [bluebird](https://github.com/petkaantonov/bluebird).)
-
-```javascript
-var jbase = require('jbase');
-var Promise = jbase.Promise;
-
-// Work with `Promise` here
-```
-
-#### Loading or saving databases
-
-* `db(databaseName, options)` - Returns a database instance.
-
-JBase lazily loads databases. JBase also creates databases if they don't exist. To load or create a database:
-
-```javascript
 // Open or create a database
-var db = jbase.db('some_db');
+const db = trivialdb.db('some_db');
 
 // Open or create a database, with options
-var db = jbase.db('some_db', { writeToDisk: false });
+const db = trivialdb.db('some_db', { writeToDisk: false });
 ```
 
-This will look for a file named `"./some_db.json"`. (If your database lives somewhere else, you can pass the `rootPath`
-option in to the `db` call.)
+By default, when a new database is created, it will look for a file named `'some_db.json'` inside the database folder.
+(By default this is `'<application>/db'`. You can control this path by setting the `basePath` or `dbPath` options of the 
+namespace, or alternatively, the `dbPath` or `rootPath` options of the database.)
 
-##### New in 1.0.0
-
-You can now request the same database multiple times, and get back the same instance. This allows you to request the
-database by name in different places in your code, and not worry about the two database instance fighting with each
-other. (The previous behavior was clearly broken, and resulted in very strange issues.)
-
-_Note_: When you request a database any other time than the first, the options are ignored. There is currently no way to
-change a database's options at run time.
+You can request the same database multiple times, and get back the same instance (though any options passed on 
+subsequent calls will be ignored). This allows you to request the database by name in different places in your code, 
+and not worry about the two database instance fighting with each other.
 
 ##### Options
 
@@ -315,119 +133,221 @@ The options supported by the `db` call are:
     writeToDisk: true | false,  // Whether or not to persist the database to disk. (Default: `true`)
     loadFromDisk: true | false, // Whether or not to read the database in from disk on load. (Default: `true`)
     rootPath: "...",            // The path to a folder that will contain the persisted database json files. (Default: './')
+    dbPath: "..."				// The path, relative to the namespace's `basePath` to the root database folder. (Defaults to 'db'.)
     writeDelay: ...,            // A number in milliseconds to wait between writes to the disk. (Default: 0)
-    prettyPrint: true | false   // Whether or not the json on disk should be pretty printed. (Default: `true`)
+    prettyPrint: true | false,  // Whether or not the json on disk should be pretty printed. (Default: `true`)
+    pk: "...",                  // The field in the object to use as the primary key. (Default: `undefined`)
+    idFunc: function(){...}     // The function to use to generate unique ids.
 }
 ```
 
-#### Storing Values
+If you call `db` passing in the name of an existing namespace, any options passed will be ignored.
 
-* `store(value)` - Returns a promise resolved with `key`.
-* `store(key, value)` - Returns a promise resolved with `key`.
+## Namespace API
 
-Since JBase is a key/value storage, all values are stored under a key. This key is not part of the value that gets stored,
-since JBase never modifies your value. Also, while you can specify a key, you will need to ensure it's unique (otherwise
-it will silently overwrite). Instead, I recommend you let JBase create the key for you (by not passing one).
+Namespaces have exactly one function, `db`, which works exactly like the TrivialDB function for creating a database.
+(see above.)
 
-When you let JBase auto generate the key, you can find out what that key was by using `.then()`, which will be passed
-the newly generated key.
+## Database API
+
+TrivialDB database objects have two APIs, one synchronous, the other asynchronous (Promise based). The synchronous API
+is significantly faster, but it does not trigger syncing to disk, and should be considered a 'dirty' form of reading and 
+writing. In the future, TrivialDB may get the ability to support multiple processes sharing the same file, and at that 
+time, the synchronous API will be a truly dirty API, with the values often being out of date. (See the more in depth
+discussion in each relevant section below.)
+
+### Database Options
+
+There are some options that deserve further details.
+
+#### Custom ID Generation
+
+If you want to generate your own ids, and not use the ids TrivialDB generates by default, you can specify your own
+function in the database options. By specifying `idFunc`, TrivialDB will use this function to generate all ids, when needed.
+The `idFunc` function is passed the object, so you can generate ids based on the object's content, if you wish. (An
+example of this would be generating a slug from an article's name.)
 
 ```javascript
-// Store an object
-db.store({ foo: "bar!", test: "Apples" })
-    .then(function(key)
-    {
-        // Work with `key` here
-    };
+function slugify(article)
+{
+    return article.name.toString().toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^\w\-]+/g, '')
+        .replace(/\-\-+/g, '-')
+        .replace(/^-+/, '')
+        .replace(/-+$/, '');
+} // end slugify
 
-var key = undefined
-// We support auto generating keys whenever the key parameter is undefined.
-db.store(key, { foo: "bar!", test: "Apples" })
-    .then(function(key)
-    {
-        // Work with `key` here
-    };
+// Declare a new database, using the slugify function above.
+const db = trivialdb.db("articles", { writeToDisk: false, idFunc: slugify });
 
-// Store an object with key
-db.store('my_key', { foo: "bar!", test: "Apples" })
-    .then(function(key)
+// Now, we save an object
+db.save({ name: "TrivialDB: now with id generation functions!", body: "Read the title, dude." })
+    .then(function(id)
     {
-        // `key` == 'my_key'
-    };
+        // This prints the id: 'trivialdb-now-with-id-generation-functions'.
+        console.log('id:', id);
+    });
 ```
+
+Be careful; it is up to you to ensure your generated ids are unique. Additionally, if your generation function blows up,
+TrivialDB may return some nonsensical errors. (This may improve in the future.)
+
+### Key/Value API
+
+The synchronous API follows a scheme of `get`, `set`, `del`. Primarily, these functions work with the internal memory store 
+directly, meaning that in the case of `set` or `del`, thier changes will not be persisted until something else triggers
+a write to disk. If you have set `writeToDisk` to `false`, then you can use these APIs without any concern at all.
+
+The asynchronous API follows a scheme of `load`, `save`, `remove`. These functions are always considered safe; they will
+not resolve their promises until after the changes have been successfully saved to disk. (They will, however, modify the
+data immediately, so dirty reads/writes may occur while the safe read/write is pending, and it will get the updated 
+value.)
+
+It should be noted that currently, `get` and `load` are only differentiated by the fact that `load` returns a promise. 
+In the future, `load` may be modified to sync from disk, allowing for multiple processes to write to the same json file.
+This is important to keep in mind, as `get` is a very popular function, if you are in a multiprocess scenario in the 
+future, it may return stale values. As such, it should be considered a dirty read.
 
 #### Retrieving Values
 
-* `get(key)` - Returns a promise resolved to the value or `undefined`.
-
-JBase only supports direct lookups by key. It returns a promise resolved to the value stored.
-
+* Synchronous
+	* `get(key)` - Returns the value stored under `key`or `undefined`.
+* Asynchronous
+	* `load(key)` - Returns a promise resolved to the value or `undefined`.
+	
 ```javascript
-// Get an object
-db.get('my_key')
+// Get an object synchronously
+const val = db.get('my_key');
+
+// Get an object asynchronously
+db.load('my_key')
     .then(function(val)
     {
         // Work with `val` here
     });
 ```
 
-#### Updating Values
+TrivialDB only supports direct retrieval by a single string identifier. If a value for that key is not found, `undefined`
+will be returned. (This mirrors the direct use of objects in JavaScript.)
 
-* `merge(key, partialObj)` - Returns a promise resolved to the new value.
+#### Storing Values
 
-JBase support partial object updates. JBase will take whatever object you pass in, and merge that object with the value
-stored at that key. If there is no value, it works exactly like `store`. The resulting object is returned.
+* Synchronous
+    * `set(value)` - Returns a generated key.
+    * `set(key, value)` - Returns `key`.
+* Asynchronous
+    * `save(value)` - Returns a promise resolved with a generated key.
+    * `save(key, value)` - Returns a promise resolved with `key`.
 
 ```javascript
-// Update an object
-db.merge('my_key', { test: "Oranges" })
-    .then(function(obj)
-    {
-        // Work with `obj` here
-    });
+// Store a value
+const id = db.set({ name: 'foo' });
 
+// Store a value with a specific key
+db.set('foo', { name: 'foo' });
+
+// Overwrite the previous value
+db.set('foo', { name: 'bar' });
+
+// Asynchronously store a value
+db.save({ name: 'foo' })
+	.then(function(id)
+	{
+		// Work with 'id' here.
+	});
 ```
 
-#### Filter Queries
+All values in TrivialDB are stored under a key, and _must_ be objects. If you do not pass in a key, TrivialDB will 
+generate one for you. (The autogenerated keys are base62 encoded uuids, basically the same algorithm use by url 
+shorteners.) In the event you do not pass a key, your will need to look at the return value to know how to retrieve 
+your objects.
 
-* `filter(filter)` - Returns a promise resolved to an object of filtered values.
+If you specify a key, it is up to you to ensure it's unique. TrivialDB will silently overwrite any previous value.
 
-Sometimes, you need to query based on more than just the key. To do that, JBase gives you a very simple filter query. It
-iterates over every value in the database, and passes that into your filter function. If the function returns true, that
-value is included in the results, otherwise it's omitted.
+TrivialDb supports the `pk` option for setting a primary key. Keys are **always added to your object**, but with the 
+`pk` options, you can control what field it is stored under. (By default, it's `id`.)
+
+#### Removing Values
+
+* Synchronous
+    * `del(predicate)` - Returns a list of removed values.
+* Asynchronous
+    * `remove(predicate)` - Returns a promise resolved with a list of removed values.
+
+Removing values works off a lodash predicate, must like [filter][]. This allows for removing multiple documents at the 
+same time. However, if you only wish to remove one, you will need to pass in an object that selects your primary key, 
+for example:`{ id: 'my_key' }`.
+
+[filter]: https://lodash.com/docs#filter
+
+### Query API
+
+Instead of exposing a large, complex Query API, TrivialDB exposes [lodash chain][] objects, allowing you to perform 
+lodash queries to filter and manipulate your data in any way you want. As this uses lazy evaluation, it's fast and 
+efficient even on large datasets.
+
+[lodash chain]: https://lodash.com/docs#_
+
+#### Basic Filtering
+
+* `filter(predicate)` - Returns the values that match the predicate.
 
 ```javascript
-// Filter Function
-db.filter(function(value, key)
+// Simple object filter
+const vals = db.filter({ foo: 'bar!' });
+
+// Function filter
+const vals = db.filter(function(value, key)
 {
     // Decide if you want this object
     return value.foo === 'bar!';
-}).then(function(results)
-{
-    // Work with `results` here.
 });
 ```
 
-##### New in 1.0.0
+TrivialDB has a simple filter function for when you just want a lodash [filter][]. It works as you would expect, 
+filtering all items in the database by the predicate you passed in.
 
-You can now also pass in filter objects. We switched to using lodash under the hood, so we support their `_.pluck` &
-`_.where` style callbacks as well!
+[filter]: https://lodash.com/docs#filter
+
+#### Advanced Queries
+
+* `query()` - Returns a [lodash chain][] object, wrapped around all values in the database.
 
 ```javascript
-// Filter object
-db.filter({ foo: 'bar!' })
-    .then(function(results)
-    {
-        // Work with `results` here.
-    });
+// Query for all admins, sorting by created date
+const items = db.query()
+	.filter({ admin: true })
+	.sortBy('date')
+	.run();
 ```
 
-#### Direct Access
+This exposes a [lodash chain][] object, which allows you to run whatever lodash queries you want. It clones the 
+database's values, so feel free to make any modifications you desire; you will not affect the data in the database.
+
+_Note:_ As you can see from our example, we exectute the query with `.run()`. This alias was removed in Lodash 4. We
+jump through a few hoops to extend the prototype of the individual chain object to add this back in there; this should
+not leak into the global lodash module. Why did we do this? Because I like the semantics of `.run()`, dammit.
+
+[lodash chain]: https://lodash.com/docs#_
+
+### Reload
+
+* `reload()` - Returns a promise resolved once the database has been reloaded from disk.
+
+If you need to reload your database for any reason (such as hand-edited JSON files), you can reload the database from
+disk with the `reload()` function. This is the same function that is used to load from disk initially.
+
+_Note:_ This will throw an exception on any database with `loadFromDisk: false`.
+
+_Note:_ This will completely throw away all values from in memory. If saving is not settled, changes may be lost.
+
+### Direct Access
 
 * `sync()` - Returns a promise resolved once the database is considered 'settled'.
 
 You can directly access the key/value store with the `values` property on the database instance. This is exposed
-explicitly to allow you as much freedom to work with your data as you might want. However, JBase can't detect any
+explicitly to allow you as much freedom to work with your data as you might want. However, TrivialDB can't detect any
 changes you make directly, so you will need to call the `sync` function to get your changes to persist to disk.
 
 ```javascript
@@ -438,8 +358,8 @@ db.values['foobar'] = { test: "something" };
 db.sync();
 ```
 
-The `sync` function returns a promise that is resolved once the database has 'settled', as in, there are not more
-scheduled writes. Because of this behavior, you should consider whether or not you want to wait on it's promise. Under
+The `sync` function returns a promise that is resolved once the database has 'settled', as in, there are no more
+scheduled writes. Because of this behavior, you should consider whether or not you want to wait on its promise. Under
 high load, (or with a high `writeDelay`) it's possible for a `sync` promise's resolution to be considerably delayed.
 
 ```javascript
@@ -457,20 +377,24 @@ db.sync()
 Also, you should feel free to iterate over the values object if you need to do any advanced filtering. All the same
 caveats of working with a plain javascript object apply. Just remember to call `sync` if you've made any modifications.
 
-##### New in 1.0.0
-
-Whenever `store` or `merge` are called, a `sync` event is fired from the database object. You can use this should you
-need to know when JBase is syncing to disk.
-
 ## Status
 
-JBase is reasonably stable, and since the code base is small enough, it's relatively immune to the most common forms of
-'code rot'. I make improvements when they're needed, or if someone files an issue. That being said, I consider JBase
-'production ready', provided you meet the intended use case.
+With the release of v2.0.0, v1.X is no longer supported. Additionally, there were large, breaking API changes.
+
+TrivialDB is **stable and production ready** (for the intended use case). Since the code base is small enough, it's 
+relatively immune to the most common forms of 'code rot'. I make improvements when they're needed, or if someone files 
+an issue. 
 
 ## Contributing
 
-While I only work on JBase in my spare time (what little there is), I use it for several of my projects. I'm more than
+While I only work on TrivialDB in my spare time (what little there is), I use it for several of my projects. I'm more than
 happy to accept merge requests, and/or any issues filed. If you want to fork it and improve part of the API, I'm ok with
 that too, however I ask you open an issue to discuss your proposed changes _first_. And, since it's MIT licensed, you
-can, of course, take the code and use it in your own projects.
+can of course take the code and use it in your own projects.
+
+## Donations
+
+[![Donate $5](https://img.shields.io/badge/Donate-%245-yellow.svg)](https://paypal.me/morgul/5)
+
+I accept donations for my work. While this is not my primary means of income, by any stretch, I would not mind a 
+few bucks if you find the software useful. 
