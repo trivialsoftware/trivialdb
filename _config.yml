@@ -1,0 +1,8 @@
+title: JBase
+description: A lightweight key/value json storage with persistence and a simple model api.
+google_analytics: 
+show_downloads: true
+theme: jekyll-theme-architect
+
+gems:
+  - jekyll-mentions
