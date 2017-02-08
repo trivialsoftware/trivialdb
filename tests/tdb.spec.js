@@ -215,6 +215,21 @@ describe('TDB Instance', () =>
             assert('test-key' in db.values, "The key 'test-key' was not found.");
         });
 
+        it('`set()` supports basic types', () =>
+        {
+            db.set('test1', true);
+            db.set('test2', false);
+            db.set('test3', 'foo');
+            db.set('test4', 0);
+            db.set('test5', 10);
+
+            assert.equal(true, db.get('test1'));
+            assert.equal(false, db.get('test2'));
+            assert.equal('foo', db.get('test3'));
+            assert.equal(0, db.get('test4'));
+            assert.equal(10, db.get('test5'));
+        });
+
         it('`set()` autogenerates a key when none is specified', () =>
         {
             const key = db.set({ test: true });
@@ -288,6 +303,12 @@ describe('TDB Instance', () =>
         {
             const value = db.get('does-not-exist-key');
             assert.equal(value, undefined);
+        });
+
+        it('`get()` returns a default value when passing in a nonexistent key, and a default value is passed in', () =>
+        {
+            const value = db.get('does-not-exist-key', 23);
+            assert.equal(value, 23);
         });
 
         it('`get()` returns a deeply cloned value', () =>
