@@ -113,7 +113,7 @@ const trivialdb = require('trivialdb');
 const db = trivialdb.db('some_db');
 
 // Open or create a database, with options
-const db = trivialdb.db('some_db', { writeToDisk: false });
+const db2 = trivialdb.db('some_db2', { writeToDisk: false });
 ```
 
 By default, when a new database is created, it will look for a file named `'some_db.json'` inside the database folder.
@@ -130,12 +130,12 @@ The options supported by the `db` call are:
 
 ```javascript
 {
-    writeToDisk: true | false,  // Whether or not to persist the database to disk. (Default: `true`)
-    loadFromDisk: true | false, // Whether or not to read the database in from disk on load. (Default: `true`)
+    writeToDisk: true || false,  // Whether or not to persist the database to disk. (Default: `true`)
+    loadFromDisk: true || false, // Whether or not to read the database in from disk on load. (Default: `true`)
     rootPath: "...",            // The path to a folder that will contain the persisted database json files. (Default: './')
-    dbPath: "..."				// The path, relative to the namespace's `basePath` to the root database folder. (Defaults to 'db'.)
+    dbPath: "...",		// The path, relative to the namespace's `basePath` to the root database folder. (Defaults to 'db'.)
     writeDelay: ...,            // A number in milliseconds to wait between writes to the disk. (Default: 0)
-    prettyPrint: true | false,  // Whether or not the json on disk should be pretty printed. (Default: `true`)
+    prettyPrint: true || false,  // Whether or not the json on disk should be pretty printed. (Default: `true`)
     pk: "...",                  // The field in the object to use as the primary key. (Default: `undefined`)
     idFunc: function(){...}     // The function to use to generate unique ids.
 }
@@ -155,6 +155,15 @@ is significantly faster, but it does not trigger syncing to disk, and should be 
 writing. In the future, TrivialDB may get the ability to support multiple processes sharing the same file, and at that 
 time, the synchronous API will be a truly dirty API, with the values often being out of date. (See the more in depth
 discussion in each relevant section below.)
+
+### Properties
+
+The database object has the following properties:
+
+* `name` - The name given to the database. (Also the filename, minus extension.)
+* `count` - The number of keys in the database.
+* `path` - The full path to the backing file, assuming it writes to disk.
+* `rootPath` - The full path to the folder for the database (aka `path` minus the filename).
 
 ### Database Options
 
@@ -281,6 +290,12 @@ for example:`{ id: 'my_key' }`.
 
 [filter]: https://lodash.com/docs#filter
 
+##### Deleting the database
+
+* `clear()` - Returns a promise resolved once the database is considered 'settled'.
+
+In addition to removing an individual key, you can clear the entire database. This **always** syncs to disk.
+
 ### Query API
 
 Instead of exposing a large, complex Query API, TrivialDB exposes [lodash chain][] objects, allowing you to perform 
@@ -298,7 +313,7 @@ efficient even on large datasets.
 const vals = db.filter({ foo: 'bar!' });
 
 // Function filter
-const vals = db.filter(function(value, key)
+const vals2 = db.filter(function(value, key)
 {
     // Decide if you want this object
     return value.foo === 'bar!';

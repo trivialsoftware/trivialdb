@@ -94,6 +94,18 @@ describe('TDB Instance', () =>
         });
     });
 
+    it('gives a count of all the keys stored in it', () =>
+    {
+        db.values = {
+            'some-guy': { age: 36, name: "Some Guy" },
+            'also-guy': { age: 32, name: "Also Guy" },
+            'some-other-guy': { age: 16, name: "SomeOther Guy" },
+            'additional-guy': { age: 11, name: "Additional Guy" }
+        };
+
+        assert.equal(4, db.count);
+    });
+
     describe("Options", () =>
     {
         it('writeToDisk can be used to disable writing to disk', () =>
@@ -390,7 +402,7 @@ describe('TDB Instance', () =>
                 'some-guy': { age: 36, name: "Some Guy", id: 'some-guy' },
                 'also-guy': { age: 32, name: "Also Guy", id: 'also-guy' }
             };
-            db._writeToDisk = () => { throw new Error("Write to disk!") };
+            db._writeToDisk = () => { throw new Error("Tried to write to disk!") };
 
             db.del('test-key', { age: 36 });
         });
@@ -409,6 +421,20 @@ describe('TDB Instance', () =>
             };
 
             db.remove({ age: 36 });
+        });
+
+        it('`clear()` removes all keys from the database', () =>
+        {
+            db.values = {
+                'some-guy': { age: 36, name: "Some Guy", id: 'some-guy' },
+                'also-guy': { age: 32, name: "Also Guy", id: 'also-guy' }
+            };
+
+            assert.equal(2, db.count);
+
+            db.clear();
+
+            assert.equal(0, db.count);
         });
     });
 
