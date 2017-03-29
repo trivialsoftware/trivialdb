@@ -164,6 +164,7 @@ The database object has the following properties:
 * `count` - The number of keys in the database.
 * `path` - The full path to the backing file, assuming it writes to disk.
 * `rootPath` - The full path to the folder for the database (aka `path` minus the filename).
+* `loading` - A promise that is resolved once the initial data is loaded.
 
 ### Database Options
 
@@ -201,6 +202,46 @@ db.save({ name: "TrivialDB: now with id generation functions!", body: "Read the 
 
 Be careful; it is up to you to ensure your generated ids are unique. Additionally, if your generation function blows up,
 TrivialDB may return some nonsensical errors. (This may improve in the future.)
+
+### Loading
+
+As long as `loadFromDisk` (or `writeToDisk`) is not set to false, TrivialDB will attempt to load a database when you 
+first call `.db()`. Sometimes, you need to wait for the datbase to be loaded before doing operations. This is why we 
+provide a `loading` promise on the db object. Waiting for the database to be done is very simple:
+
+```javascript
+// This could declare a new DB, or it could be pulling an existing one from the cache.
+const db = trivialdb.db("articles");
+
+// This will execute once the db is loaded. If it is already loaded, we resolve instantly.
+db.loading.then(() =>
+    {
+        console.log('loaded.');
+    });
+```
+
+It's worth mentioning that the `loading` promise is always available, even if disk operations will not be performed.
+This means you can always wait on the `loading` promise, without knowing details about how the database is configured.
+
+#### `loaded` event
+
+If you don't want to use the loading promise, there is also a `loaded` event that is always fired off once the database
+has finished loading. This event does still fire if there's no disk operations to do.
+
+```javascript
+// This could declare a new DB, or it could be pulling an existing one from the cache.
+const db = trivialdb.db("articles");
+
+// This will execute once the db is loaded. If it is already loaded, **this will never fire.**
+db.on('loading', () =>
+    {
+        console.log('loaded.');
+    });
+```
+
+_Note: Due to the nature of events, if the database has already loaded, listening for the `loaded` event will never 
+trigger. There is no way to know, other than to call `db.loading.isPending()`, at which point you should probably just 
+use the promise directly._
 
 ### Key/Value API
 
@@ -345,11 +386,11 @@ const items = db.query()
 This exposes a [lodash chain][] object, which allows you to run whatever lodash queries you want. It clones the 
 database's values, so feel free to make any modifications you desire; you will not affect the data in the database.
 
-_Note:_ As you can see from our example, we exectute the query with `.run()`. This alias was removed in Lodash 4. We
+_Note:_ As you can see from our example, we execute the query with `.run()`. This alias was removed in Lodash 4. We
 jump through a few hoops to extend the prototype of the individual chain object to add this back in there; this should
 not leak into the global lodash module. Why did we do this? Because I like the semantics of `.run()`, dammit.
 
-[lodash chain]: https://lodash.com/docs#_
+[lodash chain]: https://lodash.com/docs#lodash
 
 ### Reload
 
@@ -357,6 +398,8 @@ not leak into the global lodash module. Why did we do this? Because I like the s
 
 If you need to reload your database for any reason (such as hand-edited JSON files), you can reload the database from
 disk with the `reload()` function. This is the same function that is used to load from disk initially.
+
+This function resets the `loading` promise, and emits a `loaded` event once complete.
 
 _Note:_ This will throw an exception on any database with `loadFromDisk: false`.
 

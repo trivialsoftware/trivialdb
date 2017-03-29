@@ -63,6 +63,21 @@ describe('TDB Instance', () =>
         });
     });
 
+    it('provides a `loading` promise that resolves once loading is complete', () =>
+    {
+        db = new TDB("tdb_test", { writeToDisk: false, rootPath: rootPath });
+        return db.loading.then(() =>
+        {
+            assert.deepEqual(db.values, JSON.parse(testDB));
+        });
+    });
+
+    it('provides a `loading` promise that resolves instantly if `loadFromDisk` is false', () =>
+    {
+        db = new TDB("tdb_test", { loadFromDisk: false });
+        return db.loading.then(() => { assert(true); });
+    });
+
     it('writes changes to disk as a json file', () =>
     {
         const testDBObj = JSON.parse(testDB);
