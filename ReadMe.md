@@ -348,7 +348,9 @@ Instead of exposing a large, complex Query API, TrivialDB exposes [lodash chain]
 lodash queries to filter and manipulate your data in any way you want. As this uses lazy evaluation, it's fast and 
 efficient even on large datasets.
 
-[lodash chain]: https://lodash.com/docs#_
+_Note: TrivialDB currently uses **implicit** chaining, meaning that methods that operate or return a single value cannot 
+have `.run()`/`.value()` called on them. See 'The wrapper methods that are **not** chainable' section of the lodash docs for a 
+complete list. This will change to explicit chaining in the future._
 
 #### Basic Filtering
 
@@ -461,3 +463,4 @@ can of course take the code and use it in your own projects.
 
 I accept donations for my work. While this is not my primary means of income, by any stretch, I would not mind a 
 few bucks if you find the software useful. 
+
