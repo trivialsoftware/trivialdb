@@ -41,7 +41,7 @@ However, this isn't actually that much of a limitation. Generally, you're workin
 data in memory anyway; your data sets can get relatively large before you even need to worry about this.
 
 [redis]: https://redis.io
-[lodash chaining]: https://lodash.com/docs#_
+[lodash chaining]: https://lodash.com/docs#lodash
 
 ## Lodash Shoutout
 
