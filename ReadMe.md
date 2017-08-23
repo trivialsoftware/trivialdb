@@ -264,7 +264,7 @@ future, it may return stale values. As such, it should be considered a dirty rea
 * Synchronous
 	* `get(key, defaultVal)` - Returns the value stored under `key`or `undefined`.
 * Asynchronous
-	* `load(key)` - Returns a promise resolved to the value or `undefined`.
+	* `load(key)` - Returns a promise resolved to the value or throws `DocumentNotFoundError`.
 	
 ```javascript
 // Get an object synchronously
@@ -279,12 +279,25 @@ db.load('my_key')
     {
         // Work with `val` here
     });
+
+// Get an object asynchronously that doesn't exist
+db.load('does_not_exist')
+    .then(function(val)
+    {
+    	// Will never get here
+    })
+    .catch(trivialdb.errors.DocumentNotFound, function(error)
+    {
+        // Handle the error.
+    });
 ```
 
 TrivialDB only supports direct retrieval by a single string identifier. If a value for that key is not found, `undefined`
-will be returned. (This mirrors the direct use of objects in JavaScript.) However, if you are using `get` we allow you 
-to pass in a default value, which will be returned if the key is not found. This is _not_ supported on `load`, however,
-as `load` is intended to return you _exactly_ what is in the database at this moment.
+will be returned for `get` (This mirrors the direct use of objects in JavaScript); additionally, we allow you to pass in
+a default value, which will be returned if the key is not found. This is _not_ supported on `load`, however, as `load` 
+is intended to return you _exactly_ what is in the database at this moment. If you attempt to use `load` to get a 
+document that does not exist, it will throw a `DocumentNotFoundError` object. This allows you to do traditional promise
+error handling, as opposed to using `if(result === undefiend)`.
 
 #### Storing Values
 
