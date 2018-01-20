@@ -485,6 +485,18 @@ describe('TDB Instance', () =>
             assert.equal(lodashConstructorName, queryConstructorName);
         });
 
+        it('uses lodash `chain`, instead of implicit chaining', () =>
+        {
+            db.values = {
+                'some-guy': { age: 36, name: "Some Guy", id: 'some-guy' },
+                'also-guy': { age: 32, name: "Also Guy", id: 'also-guy' },
+                'merv': { age: 32, name: "Merv Guy", id: 'merv' }
+            };
+
+            const result = db.query().sortBy('age').last().run();
+            assert.deepEqual(result, db.values['some-guy']);
+        });
+
         it('returns a cloned version of the full database', () =>
         {
             db.values['test'] = { foo: 123 };
@@ -511,10 +523,10 @@ describe('TDB Instance', () =>
             assert.equal(query.value, query.run);
 
             const values = db.query().filter({ age: 32 }).run();
-            assert(values.length == 2);
+            assert(values.length === 2);
 
             const values2 = db.query().filter({ age: 32 }).value();
-            assert(values2.length == 2);
+            assert(values2.length === 2);
         });
 
         it('does not leak `.run` into the global lodash prototype', () =>
