@@ -13,7 +13,7 @@ const _ = require('lodash');
 const Promise = require('bluebird');
 
 const TDB = require('../lib/tdb');
-const errors = require('../lib/errors');
+const { DocumentNotFoundError } = require('../lib/errors');
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -360,7 +360,7 @@ describe('TDB Instance', () =>
                 {
                     assert(false, "Failed to throw error.");
                 })
-                .catch(errors.DocumentNotFound, () => {});
+                .catch(DocumentNotFoundError, () => {});
         });
     });
 
