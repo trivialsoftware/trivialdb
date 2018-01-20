@@ -361,9 +361,8 @@ Instead of exposing a large, complex Query API, TrivialDB exposes [lodash chain]
 lodash queries to filter and manipulate your data in any way you want. As this uses lazy evaluation, it's fast and 
 efficient even on large datasets.
 
-_Note: TrivialDB currently uses **implicit** chaining, meaning that methods that operate or return a single value cannot 
-have `.run()`/`.value()` called on them. See 'The wrapper methods that are **not** chainable' section of the lodash docs for a 
-complete list. This will change to explicit chaining in the future._
+_Note: TrivialDB currently uses **explicit** chaining, meaning that you must always use `.run()`/`.value()`. Please 
+check the [docs](https://lodash.com/docs/#lodash) to understand the full implications of this._
 
 #### Basic Filtering
 
@@ -396,6 +395,12 @@ const items = db.query()
 	.filter({ admin: true })
 	.sortBy('date')
 	.run();
+
+// Find the most recently created user
+const latestUser = db.query()
+	.sortBy('date')
+	.last()
+	.run();
 ```
 
 This exposes a [lodash chain][] object, which allows you to run whatever lodash queries you want. It clones the 
@@ -405,7 +410,7 @@ _Note:_ As you can see from our example, we execute the query with `.run()`. Thi
 jump through a few hoops to extend the prototype of the individual chain object to add this back in there; this should
 not leak into the global lodash module. Why did we do this? Because I like the semantics of `.run()`, dammit.
 
-[lodash chain]: https://lodash.com/docs#lodash
+[lodash chain]: https://lodash.com/docs#chain
 
 ### Reload
 
@@ -457,11 +462,25 @@ caveats of working with a plain javascript object apply. Just remember to call `
 
 ## Status
 
-With the release of v2.0.0, v1.X is no longer supported. Additionally, there were large, breaking API changes.
+With the release of v2.0.0, v1.x is no longer supported. Additionally, there were large, breaking API changes.
 
-TrivialDB is **stable and production ready** (for the intended use case). Since the code base is small enough, it's 
-relatively immune to the most common forms of 'code rot'. I make improvements when they're needed, or if someone files 
-an issue. 
+TrivialDB is **stable and production ready** (for the intended use case). I will provide support for v2.x for the 
+foreseeable future. I will even attempt to help with v1.x if you're using it in a production product, but I can't make 
+any promises.
+
+If you are using this in a production product, please get in touch. Not only would I love to know, but if you need 
+direct support, I'd be more than willing to discuss it.
+
+### Updates
+
+Since the code base is small enough, it's relatively immune to the most common forms of 'code rot'. I make improvements 
+when they're needed, or if someone files an issue. Just because I haven't touched it in a year or two doesn't mean it's 
+dead; if you're concerned, feel free to file an issue and ask if it's still being supported.
+
+### Upcoming v3.0.0
+
+Currently, I'm working on adding a few minor breaking changed (such as implicit changing #34), and browser support. If 
+you want to test these features, you can check out master and give it a spin. If you find a bug, please file an issue!
 
 ## Contributing
 
