@@ -3,6 +3,9 @@
   "version": "2.3.0",
   "description": "A lightweight key/value json storage with persistence.",
   "main": "trivialdb.js",
+  "browser": {
+    "./lib/fslib": "./lib/fslib.browser"
+  },
   "scripts": {
     "test": "./node_modules/.bin/mocha tests --reporter spec --recursive"
   },
