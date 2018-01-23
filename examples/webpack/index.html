@@ -1,0 +1,71 @@
+<html>
+	<head>
+		<title>TrivialDB Webpack Example</title>
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+		<script defer src="https://use.fontawesome.com/releases/v5.0.4/js/all.js"></script>
+	</head>
+	<body>
+
+		<div id="app">
+			<div class="jumbotron jumbotron-fluid">
+				<div class="container">
+					<h1 class="display-4">TrivialDB Webpack Example</h1>
+					<p class="lead">This demonstrates using TrivialDB purely in the browser.</p>
+				</div>
+			</div>
+			<div id="content" class="container pb-2">
+				<div class="row">
+					<div class="col">
+						<div class="card">
+							<div class="card-header">
+								<button class="btn btn-secondary float-right" onclick="onUsersReload(event)">
+									<i class="fas fa-sync"></i>
+									Reload
+								</button>
+								<h5 class="mt-2">Users</h5>
+							</div>
+							<ul class="list-group list-group-flush" id="user-list">
+								<li class="list-group-item text-center">
+									<h4>Loading...</h4>
+									<div class="progress">
+										<div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%"></div>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</div>
+					<div class="col">
+						<div class="card">
+							<div class="card-header">
+								<form class="form-inline float-right mb-0">
+									<label class="sr-only" for="titleFilter">Filter</label>
+									<input type="text" class="form-control" id="titleFilter" placeholder="Filter Title..." oninput="onTitleFilter(event)">
+								</form>
+								<h5 class="mt-2">Books</h5>
+							</div>
+							<ul class="list-group list-group-flush" id="book-list">
+								<li class="list-unstyled text-center">
+									<h4>Loading...</h4>
+									<div class="progress">
+										<div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%"></div>
+									</div>
+								</li>
+							</ul>
+							<div id="more-books" class="card-footer text-muted">
+								<small>Too many books returned. Limiting to 5...</small>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- App -->
+		<script type="text/javascript" src="dist/app.js"></script>
+
+		<!-- Bootstrap -->
+		<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+	</body>
+</html>

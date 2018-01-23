@@ -1,0 +1,21 @@
+{
+  "name": "trivialdb-webpack-example",
+  "version": "1.0.0",
+  "description": "An example of using trivialdb in webpack.",
+  "main": "server.js",
+  "scripts": {
+    "dev": "webpack-dev-server"
+  },
+  "keywords": [
+    "trivialdb",
+    "db",
+    "webpack",
+    "example"
+  ],
+  "author": "Christopher S. Case <chris.case@g33xnexus.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "webpack": "^3.10.0",
+    "webpack-dev-server": "^2.11.0"
+  }
+}
