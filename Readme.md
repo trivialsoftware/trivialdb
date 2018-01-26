@@ -43,6 +43,16 @@ data in memory anyway; your data sets can get relatively large before you even n
 [redis]: https://redis.io
 [lodash chaining]: https://lodash.com/docs#lodash
 
+### In Browser Database
+
+One of the new and exciting use cases is that TrivialDB is now usable inside a browser! By default it will read/write
+JSON over REST, but you can easily change this to use IndexedDB or LocalStorage. You can even use a bundler like
+Browserify or Webpack to include the JSON directly, and have zero load time.
+
+This helps when developing static, "server-less" sites; you can have a development version that generates the JSON 
+locally, commit it to git, and then have your static site generation simply include the new JSON files and push them 
+out. Your client-side code can still work with TrivialDB as if it was a normal application.
+
 ## Lodash Shoutout
 
 This entire project is made possible by the [lodash][] project. If it wasn't for their hard work and the effort they put 
