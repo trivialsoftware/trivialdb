@@ -4,7 +4,7 @@
   "description": "An example of using trivialdb in webpack.",
   "main": "server.js",
   "scripts": {
-    "dev": "webpack-dev-server"
+    "dev": "webpack-dev-server --port 5555"
   },
   "keywords": [
     "trivialdb",
