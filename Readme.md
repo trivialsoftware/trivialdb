@@ -203,6 +203,18 @@ db.save({ name: "TrivialDB: now with id generation functions!", body: "Read the 
 Be careful; it is up to you to ensure your generated ids are unique. Additionally, if your generation function blows up,
 TrivialDB may return some nonsensical errors. (This may improve in the future.)
 
+#### `readFunc` and `writeFunc`
+
+You can override the built in underlying read and/or write functions. By default these will read/write from the disk. 
+However, you can override them with any `Promise` returning function.
+
+* `readFunc(path)` - This function is passed the absolute path of the file as `path`. The `rootDir` will be `/` on 
+browser, or the root directory of the running node process. This function _must_ return a `Promise`. The promise's 
+return value is ignored.
+* `writeFunc(path, jsonStr)` - This function is passed the absolute path of the file as `path`, and the json string
+representation of the database as `jsonStr`. The `rootDir` will be `/` on browser, or the root directory of the running 
+node process. This function _must_ return a `Promise`. The promise's return value is ignored.
+
 ### Loading
 
 As long as `loadFromDisk` (or `writeToDisk`) is not set to false, TrivialDB will attempt to load a database when you 
@@ -242,6 +254,18 @@ db.on('loading', () =>
 _Note: Due to the nature of events, if the database has already loaded, listening for the `loaded` event will never 
 trigger. There is no way to know, other than to call `db.loading.isPending()`, at which point you should probably just 
 use the promise directly._
+
+#### Reading and Writing in a Browser
+
+By default, in node, TrivialDB will attempt to read and write using the `fs` library. The path will be relative to the
+project's absolute path. However, in a browser, we can't use `fs`. So, instead, we use the [fetch][] api to make REST
+calls. The `path` is relative to `/`, and will look something like `/db/namespace/some_db.json`.
+
+For loading the database, it will make a `GET` request, and for writing, it will make a `POST` request. If you need to
+do something different, like using `PUT` or maybe transmitting data over websockets, simply override the `readFunc`
+and/or `writeFunc` options in the configuration. 
+
+[fetch]: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
 
 ### Key/Value API
 
