@@ -353,6 +353,15 @@ describe('TDB Instance', () =>
             assert(_.isFunction(promise.then), "`load().then` is not a function!");
         });
 
+        it("`load()` returns a default value when passing in a nonexistent key, and a default value is passed in", () =>
+        {
+            return db.load('does-not-exist', 'default')
+                .then((value) =>
+                {
+                    assert.equal(value, 'default');
+                });
+        });
+
         it("`load()` rejects with a 'DocumentNotFound' error on nonexistent keys", () =>
         {
             return db.load('does-not-exist')
