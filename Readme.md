@@ -314,6 +314,13 @@ db.load('my_key')
         // Work with `val` here
     });
 
+// Get an object asynchronously, with a default value
+db.load('does_not_exist', 'default')
+    .then(function(val)
+    {
+    	// val is equal to 'default'
+    });
+
 // Get an object asynchronously that doesn't exist
 db.load('does_not_exist')
     .then(function(val)
