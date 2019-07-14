@@ -1,6 +1,6 @@
 {
   "name": "trivialdb",
-  "version": "3.0.0-rc.2",
+  "version": "3.0.0",
   "description": "A lightweight key/value json storage with persistence.",
   "main": "trivialdb.js",
   "browser": {
@@ -51,6 +51,5 @@
       "yarn run lint",
       "git add"
     ]
-
   }
 }
