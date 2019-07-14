@@ -1,0 +1,23 @@
+{
+  "name": "trivialdb-parcel-example",
+  "version": "1.0.0",
+  "description": "An example of using trivialdb in parcel.",
+  "scripts": {
+    "clean": "rimraf dist/ .cache",
+    "copy": "cpr db dist/db",
+    "dev": "npm run clean && npm run copy && parcel serve -p 5555 index.html"
+  },
+  "keywords": [
+    "trivialdb",
+    "db",
+    "parcel",
+    "example"
+  ],
+  "author": "Christopher S. Case <chris.case@g33xnexus.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "cpr": "^3.0.1",
+    "parcel": "^1.12.3",
+    "rimraf": "^2.6.3"
+  }
+}

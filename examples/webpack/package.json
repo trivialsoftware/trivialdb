@@ -2,7 +2,6 @@
   "name": "trivialdb-webpack-example",
   "version": "1.0.0",
   "description": "An example of using trivialdb in webpack.",
-  "main": "server.js",
   "scripts": {
     "dev": "webpack-dev-server --port 5555"
   },

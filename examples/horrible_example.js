@@ -19,16 +19,16 @@ function pprint(obj)
 const db = trivialdb.db('example', { writeToDisk: false });
 
 // Create some new keys
-let hammerID, horribleID, moistID, bhSingerID, pennyID;
+let hammerID; let horribleID; let moistID; let bhSingerID; let pennyID;
 Promise.resolve()
     .then(() =>
     {
         return Promise.join(
-            db.save({ name: "Captain Hammer", role: 'hero', nemeses: [] }).then((id) => { hammerID = id; }),
-            db.save({ name: "Dr. Horrible", role: 'villain', nemeses: [] }).then((id) => { horribleID = id; }),
-            db.save({ name: "Moist", role: 'henchman', nemeses: [] }).then((id) => { moistID = id; }),
-            db.save({ name: "Bad Horse Singer", role: 'henchman', nemeses: [] }).then((id) => { bhSingerID = id; }),
-            db.save({ name: "Penny", role: 'love interest', nemeses: [] }).then((id) => { pennyID = id; })
+            db.save({ name: 'Captain Hammer', role: 'hero', nemeses: [] }).then((id) => { hammerID = id; }),
+            db.save({ name: 'Dr. Horrible', role: 'villain', nemeses: [] }).then((id) => { horribleID = id; }),
+            db.save({ name: 'Moist', role: 'henchman', nemeses: [] }).then((id) => { moistID = id; }),
+            db.save({ name: 'Bad Horse Singer', role: 'henchman', nemeses: [] }).then((id) => { bhSingerID = id; }),
+            db.save({ name: 'Penny', role: 'love interest', nemeses: [] }).then((id) => { pennyID = id; })
         );
     })
     .then(() =>
@@ -40,7 +40,7 @@ Promise.resolve()
     {
         // Update some values
         const hammer = db.get(hammerID);
-        hammer.nemeses = [horribleID];
+        hammer.nemeses = [ horribleID ];
         hammer.loveInterest = pennyID;
 
         return db.save(hammer);
@@ -49,7 +49,7 @@ Promise.resolve()
     {
         // Update some values
         const horrible = db.get(horribleID);
-        horrible.nemeses = [hammerID];
+        horrible.nemeses = [ hammerID ];
         horrible.loveInterest = pennyID;
         return db.save(horrible);
     })
@@ -83,6 +83,15 @@ Promise.resolve()
 
         // Print out everyone who loves Penny
         console.log('\n[Step 3] Henchmen who hench for Dr. Horrible:\n%s', pprint(horribleHenches));
+    })
+    .then(() =>
+    {
+        // Find every henchman who henches for Dr. Horrible
+        const bhSingers = db.get(bhSingerID)
+            .run();
+
+        // Print out everyone who loves Penny
+        console.log('\n[Step 4] Details on the Bad Horse Singers:\n%s', pprint(bhSingers));
     });
 
 //----------------------------------------------------------------------------------------------------------------------
