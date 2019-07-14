@@ -515,11 +515,6 @@ Since the code base is small enough, it's relatively immune to the most common f
 when they're needed, or if someone files an issue. Just because I haven't touched it in a year or two doesn't mean it's 
 dead; if you're concerned, feel free to file an issue and ask if it's still being supported.
 
-### Upcoming v3.0.0
-
-Currently, I'm working on adding a few minor breaking changed (such as implicit chaining #34), and browser support. If 
-you want to test these features, you can check out master and give it a spin. If you find a bug, please file an issue!
-
 ## Contributing
 
 While I only work on TrivialDB in my spare time (what little there is), I use it for several of my projects. I'm more than
