@@ -18,11 +18,7 @@ to get up and running with it, and it gives you an impressive amount of power, t
 its a great fit for any personal project that needs to persist data. If you find yourself wanting to work with raw json 
 files, it's a rather large improvement on writing your own loading/saving/querying logic. 
 
-The one caveat to keep in mind is this: _every database your work with is stored in memory_. Since TrivialDB is 
-in-pricess, you might run into the memory limits of node; on a 64 bit machine, this is 1.76GB by default. (You can 
-increase this via `--max_old_space_size=<size>`.) In practice, however, this isn't actually that much of a limitation. 
-Generally, you're working with a large amount of your data in memory anyway; your data sets can get relatively large 
-before you even need to worry about this.
+The one caveat to keep in mind is this: _every database your work with is stored in memory_. Since TrivialDB is in-process, you might run into the memory limits of node; before v12, on a 64 bit machine, this is 1.76GB by default. (You can increase this via `--max_old_space_size=<size>`.) In practice, however, this isn't actually that much of a limitation. Generally, you're working with a large amount of your data in memory anyway; your data sets can get relatively large before you even need to worry about this.
 
 In fact, the very popular nosql database [Redis][redis] is in-memory. In their FAQ, they have this to say:
 
@@ -520,7 +516,7 @@ dead; if you're concerned, feel free to file an issue and ask if it's still bein
 
 ### Upcoming v3.0.0
 
-Currently, I'm working on adding a few minor breaking changed (such as implicit changing #34), and browser support. If 
+Currently, I'm working on adding a few minor breaking changed (such as implicit chaining #34), and browser support. If 
 you want to test these features, you can check out master and give it a spin. If you find a bug, please file an issue!
 
 ## Contributing
