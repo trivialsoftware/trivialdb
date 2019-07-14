@@ -39,7 +39,7 @@ data in memory anyway; your data sets can get relatively large before you even n
 [redis]: https://redis.io
 [lodash chaining]: https://lodash.com/docs#lodash
 
-### In Browser Database
+### In-Browser Database
 
 One of the new and exciting use cases is that TrivialDB is now usable inside a browser! By default it will read/write
 JSON over REST, but you can easily change this to use IndexedDB or LocalStorage. You can even use a bundler like
@@ -48,6 +48,8 @@ Browserify or Webpack to include the JSON directly, and have zero load time.
 This helps when developing static, "server-less" sites; you can have a development version that generates the JSON 
 locally, commit it to git, and then have your static site generation simply include the new JSON files and push them 
 out. Your client-side code can still work with TrivialDB as if it was a normal application.
+
+(For more information, please see the ["Reading and Writing in a Browser"](#reading-and-writing-in-a-browser) section.)
 
 ## Lodash Shoutout
 
@@ -211,8 +213,7 @@ TrivialDB may return some nonsensical errors. (This may improve in the future.)
 
 #### `readFunc` and `writeFunc`
 
-You can override the built in underlying read and/or write functions. By default these will read/write from the disk. 
-However, you can override them with any `Promise` returning function.
+You can override the built in underlying read and/or write functions. By default these will read/write from the disk (in node) or `GET`/`POST` to the specified path in the browser. You can, however, override them with any `Promise` returning function.
 
 * `readFunc(path)` - This function is passed the absolute path of the file as `path`. The `rootDir` will be `/` on 
 browser, or the root directory of the running node process. This function _must_ return a `Promise`. The promise's 
