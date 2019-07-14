@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------------------------------------------------
 
 const path = require('path');
-const assert = require("assert");
+const assert = require('assert');
 
 const TDB = require('../lib/tdb');
 const TDBNamespace = require('../lib/namespace');
@@ -28,8 +28,8 @@ describe('TDBNamespace Instance', () =>
     {
         it('returns a TDB instance', () =>
         {
-            const db = namespace.db("test", { writeToDisk: false });
-            assert(db instanceof TDB, "db is not an instance of TDB");
+            const db = namespace.db('test', { writeToDisk: false });
+            assert(db instanceof TDB, 'db is not an instance of TDB');
         });
     });
 

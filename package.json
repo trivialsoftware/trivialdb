@@ -7,7 +7,8 @@
     "./lib/fslib": "./lib/fslib.browser"
   },
   "scripts": {
-    "test": "./node_modules/.bin/mocha tests --reporter spec --recursive"
+    "lint": "eslint --fix trivialdb.js lib/*.js tests/*.js",
+    "test": "mocha tests --reporter spec --recursive"
   },
   "engines": {
     "node": ">=6.0.0"
@@ -35,6 +36,7 @@
     "uuid": "^3.0.0"
   },
   "devDependencies": {
+    "eslint": "^6.0.1",
     "mocha": "^6.1.4"
   }
 }

@@ -1,4 +1,4 @@
-# This project uses EditorConfig for setting code formatting options: http://editorconfig.org
+# This project uses EditorConfig for setting code formatting options: http://EditorConfig.org
 
 root = true
 
@@ -14,7 +14,7 @@ tab_width = 4
 max_line_length = 120
 
 spaces_around_operators = true
-spaces_around_brackets = inside
+spaces_around_brackets = none
 curly_bracket_next_line = true
 indent_brace_style = Allman
 continuation_indent_size = 4
@@ -24,12 +24,7 @@ curly_bracket_next_line = false
 continuation_indent_size = 0
 
 [*.yml]
-indent_style = space
 indent_size = 2
-
-[*.{js,json}]
-indent_style = space
-indent_size = 4
 
 # Special overrides for automatically-generated files
 [package.json]
