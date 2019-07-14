@@ -1,7 +1,5 @@
 //----------------------------------------------------------------------------------------------------------------------
 // The main TrivialDB module. The only function it exports is the `db` function, which creates or loads a new database.
-//
-// @module trivialdb.js
 //----------------------------------------------------------------------------------------------------------------------
 
 const TDBNamespace = require('./lib/namespace');
