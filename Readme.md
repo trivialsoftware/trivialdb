@@ -84,10 +84,10 @@ Database objects are the interesting ones, with the main API you will be working
 const trivialdb = require('trivialdb');
 
 // Create a namespace
-const ns1 = triviadb.ns('test-ns');
+const ns1 = trivialdb.ns('test-ns');
 
 // Create a namespace with some options
-const ns2 = triviadb.ns('test-ns', { dbPath: 'server/db' });
+const ns2 = trivialdb.ns('test-ns', { dbPath: 'server/db' });
 
 // Create a database inside that namespace
 const db = ns1.db('test', { writeToDisk: false });
